@@ -3,6 +3,8 @@ import { AuthProvider } from './context/AuthContext'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import CreatePost from './pages/CreatePost'
+import PostPage from './pages/PostPage'
+import EditPost from './pages/EditPost'
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/create" element={<CreatePost />} />
+          <Route path="/post/:id" element={<PostPage />} />
+          <Route path="/edit/:id" element={<EditPost />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
