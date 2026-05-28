@@ -1,23 +1,30 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import RichTextEditor from '../components/RichTextEditor'
 import Navbar from '../components/Navbar'
 
 const CreatePost = () => {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
-  const [title, setTitle ] = useState('')
+  const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [tags, setTags] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-500">Loading...</p>
+    </div>
+  )
+
+  if (!user) return <Navigate to="/login" />
+
   const handleSubmit = async (published: boolean) => {
     if (!title.trim()) return setError('Title is required')
     if (!content.trim()) return setError('Content is required')
-    if(!user) return setError('You must be logged in')
 
     setLoading(true)
     setError('')
@@ -54,7 +61,6 @@ const CreatePost = () => {
         )}
 
         <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input
@@ -66,7 +72,6 @@ const CreatePost = () => {
             />
           </div>
 
-          {/* Tags */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tags <span className="text-gray-400">(comma separated)</span>
@@ -80,13 +85,11 @@ const CreatePost = () => {
             />
           </div>
 
-          {/* Content */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
             <RichTextEditor content={content} onChange={setContent} />
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-4 justify-end">
             <button
               onClick={() => handleSubmit(false)}

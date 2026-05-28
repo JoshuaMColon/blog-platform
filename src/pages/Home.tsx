@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import Navbar from '../components/Navbar'
 import { Link } from 'react-router-dom'
+import LikeButton from '../components/LikeButton'
 
 interface Post {
   id: string
@@ -66,6 +67,12 @@ const Home = () => {
                     ))}
                   </div>
                 )}
+
+                {/* Likes */}
+                <div className="mb-4">
+                  <LikeButton postId={post.id} />
+                </div>
+                
                 <div
                   className="text-gray-600 text-sm line-clamp-3"
                   dangerouslySetInnerHTML={{ __html: post.content }}

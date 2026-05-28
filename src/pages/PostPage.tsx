@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
 import Comments from '../components/Comments'
+import LikeButton from '../components/LikeButton'
 
 interface Post {
   id: string
@@ -110,6 +111,11 @@ const PostPage = () => {
               ))}
             </div>
           )}
+
+          {/* Likes */}
+          <div className="mb-6">
+            <LikeButton postId={post.id} />
+          </div>
 
           {/* Content */}
           <div
