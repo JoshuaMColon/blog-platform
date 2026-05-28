@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
+import Comments from '../components/Comments'
 
 interface Post {
   id: string
@@ -123,6 +124,11 @@ const PostPage = () => {
           >
             ← Back to all posts
           </button>
+
+          {/* Comments */}
+          <hr className="my-8 border-gray-200" />
+          <Comments postId={post.id} />
+          
         </div>
       </div>
     </div>
