@@ -49,8 +49,8 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
       disabled={!user || loading}
       className={`flex items-center gap-2 px-3 py-1 rounded border font-mono text-xs transition-all
         ${liked
-          ? 'border-red-500 text-red-400 bg-red-500 bg-opacity-10 hover:bg-opacity-20'
-          : 'border-dark-500 text-gray-500 hover:border-gray-400 hover:text-gray-300'
+          ? 'border-red-400 text-red-500 bg-red-50 dark:bg-red-500 dark:bg-opacity-10 hover:bg-red-100 dark:hover:bg-opacity-20'
+          : 'border-gray-300 dark:border-dark-500 text-gray-500 hover:border-gray-400 dark:hover:border-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
         }
         ${!user ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
       `}
