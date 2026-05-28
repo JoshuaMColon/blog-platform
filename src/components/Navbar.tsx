@@ -1,45 +1,56 @@
-import { Link } from "react-router-dom";
-import { useTheme } from "../context/ThemeContext";
-import { useAuth } from "../context/useAuth";
+import { Link } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
+import ThemeSelector from './ThemeSelector'
 
 const Navbar = () => {
-  const { user, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth()
 
   return (
-    <nav className="bg-white dark:bg-dark-800 border-b border-gray-200 dark:border-dark-600 px-4 sm:px-8 py-4 sticky top-0 z-50">
-      <div className="max-w-4xl mx-auto flex justify-between items-center">
+    <nav
+      className="px-4 sm:px-8 py-4 sticky top-0 z-50 border-b"
+      style={{
+        backgroundColor: 'var(--bg-secondary)',
+        borderColor: 'var(--border)',
+      }}
+    >
+      <div className="max-w-4xl mx-auto flex justify-between items-center gap-4">
         <Link
           to="/"
-          className="font-mono font-bold text-gray-800 dark:text-white hover:text-green-600 dark:hover:text-neon transition-colors text-sm sm:text-base"
+          className="font-mono font-bold text-sm sm:text-base transition-colors flex-shrink-0"
+          style={{ color: 'var(--text-primary)' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-primary)')}
         >
-          &lt;<span className="text-green-600 dark:text-neon">Blog</span>
-          Platform /&gt;
+          &lt;<span style={{ color: 'var(--accent)' }}>Blog</span>Platform /&gt;
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-6">
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            className="text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-neon transition-colors font-mono text-xs border border-gray-300 dark:border-dark-500 rounded px-2 py-1 hover:border-green-600 dark:hover:border-neon"
-          >
-            {theme === "dark" ? "☀ light" : "⬛ dark"}
-          </button>
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
+          <ThemeSelector />
 
           {user ? (
             <>
               <Link
                 to="/create"
-                className="bg-green-600 dark:bg-neon text-white dark:text-dark-900 px-3 sm:px-4 py-1.5 rounded font-mono text-xs sm:text-sm font-bold hover:bg-green-700 dark:hover:bg-opacity-90 transition-all tracking-wide"
+                className="px-3 sm:px-4 py-1.5 rounded font-mono text-xs sm:text-sm font-bold transition-all tracking-wide"
+                style={{
+                  backgroundColor: 'var(--accent)',
+                  color: 'var(--btn-text)',
+                }}
               >
                 + new_post()
               </Link>
-              <span className="text-gray-500 text-xs font-mono hidden md:block truncate max-w-32">
+              <span
+                className="text-xs font-mono hidden md:block truncate max-w-32"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 {user.email}
               </span>
               <button
                 onClick={signOut}
-                className="text-gray-500 hover:text-red-500 text-xs font-mono transition-colors"
+                className="text-xs font-mono transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
               >
                 logout()
               </button>
@@ -47,7 +58,11 @@ const Navbar = () => {
           ) : (
             <Link
               to="/login"
-              className="bg-green-600 dark:bg-neon text-white dark:text-dark-900 px-4 py-1.5 rounded font-mono text-sm font-bold hover:bg-green-700 dark:hover:bg-opacity-90 transition-all"
+              className="px-4 py-1.5 rounded font-mono text-sm font-bold transition-all"
+              style={{
+                backgroundColor: 'var(--accent)',
+                color: 'var(--btn-text)',
+              }}
             >
               sign_in()
             </Link>
@@ -55,7 +70,7 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar
