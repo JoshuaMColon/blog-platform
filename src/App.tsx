@@ -1,12 +1,12 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import CreatePost from './pages/CreatePost'
-import PostPage from './pages/PostPage'
-import EditPost from './pages/EditPost'
-import ProtectedRoute from './components/ProtectedRoute'
-import NotFound from './pages/NotFound'
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
+import CreatePost from "./pages/CreatePost";
+import EditPost from "./pages/EditPost";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import NotFound from "./pages/NotFound";
+import PostPage from "./pages/PostPage";
 
 function App() {
   return (
@@ -17,17 +17,20 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/create" element={<CreatePost />} />
           <Route path="/post/:id" element={<PostPage />} />
-          <Route path="/create" element={
-            <ProtectedRoute>
-              <CreatePost />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/create"
+            element={
+              <ProtectedRoute>
+                <CreatePost />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/edit/:id" element={<EditPost />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
