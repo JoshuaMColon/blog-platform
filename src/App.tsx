@@ -6,6 +6,7 @@ import CreatePost from './pages/CreatePost'
 import PostPage from './pages/PostPage'
 import EditPost from './pages/EditPost'
 import ProtectedRoute from './components/ProtectedRoute'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/edit/:id" element={<EditPost />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
