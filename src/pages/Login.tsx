@@ -31,68 +31,94 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Blog Platform</h1>
-          <p className="text-gray-500 mt-2">
-            {isSignUp ? 'Create an account to get started' : 'Welcome back!'}
+          <div className="text-neon font-mono text-sm mb-2 tracking-widest">// welcome to</div>
+          <h1 className="text-4xl font-bold text-white font-mono tracking-tight">
+            &lt;BlogPlatform /&gt;
+          </h1>
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <div className="h-px w-16 bg-neon opacity-50" />
+            <span className="text-neon text-xs tracking-widest font-mono">
+              {isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN'}
+            </span>
+            <div className="h-px w-16 bg-neon opacity-50" />
+          </div>
+        </div>
+
+        {/* Card */}
+        <div className="bg-dark-800 border border-dark-600 rounded-lg p-8 shadow-2xl">
+          {/* Terminal bar */}
+          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-dark-600">
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <span className="text-dark-500 text-xs font-mono ml-2">
+              {isSignUp ? 'auth/signup.sh' : 'auth/login.sh'}
+            </span>
+          </div>
+
+          {error && (
+            <div className="border border-red-500 bg-red-500 bg-opacity-10 text-red-400 p-3 rounded mb-4 text-xs font-mono">
+              <span className="text-red-500">ERROR:</span> {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="border border-neon bg-neon bg-opacity-10 text-neon p-3 rounded mb-4 text-xs font-mono">
+              <span className="text-neon">SUCCESS:</span> {success}
+            </div>
+          )}
+
+          <div className="mb-4">
+            <label className="block text-xs font-mono text-neon mb-2 tracking-widest">
+              $ EMAIL
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+              className="w-full bg-dark-700 border border-dark-500 rounded px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-neon transition-colors placeholder-dark-500"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-xs font-mono text-neon mb-2 tracking-widest">
+              $ PASSWORD
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+              className="w-full bg-dark-700 border border-dark-500 rounded px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-neon transition-colors placeholder-dark-500"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full bg-neon text-dark-900 py-2 rounded font-mono font-bold text-sm hover:bg-opacity-90 disabled:opacity-50 transition-all tracking-widest"
+          >
+            {loading ? '> loading...' : isSignUp ? '> CREATE ACCOUNT' : '> SIGN IN'}
+          </button>
+
+          <p className="text-center text-xs text-gray-500 font-mono mt-4">
+            {isSignUp ? '// already have an account?' : '// no account yet?'}
+            <button
+              onClick={() => { setIsSignUp(!isSignUp); setError(''); setSuccess('') }}
+              className="text-neon hover:underline ml-2"
+            >
+              {isSignUp ? 'sign_in()' : 'sign_up()'}
+            </button>
           </p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-600 p-3 rounded-lg mb-4 text-sm">
-            {success}
-          </div>
-        )}
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="you@example.com"
-          />
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="••••••••"
-          />
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
-        >
-          {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
-        </button>
-
-        <p className="text-center text-sm text-gray-600 mt-4">
-          {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-          <button
-            onClick={() => { setIsSignUp(!isSignUp); setError(''); setSuccess('') }}
-            className="text-blue-600 hover:underline ml-1 font-medium"
-          >
-            {isSignUp ? 'Sign In' : 'Sign Up'}
-          </button>
-        </p>
       </div>
     </div>
   )

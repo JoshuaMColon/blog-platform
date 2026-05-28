@@ -21,12 +21,9 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
 
       if (!error && data) {
         setLikeCount(data.length)
-        if (user) {
-          setLiked(data.some(like => like.user_id === user.id))
-        }
+        if (user) setLiked(data.some(like => like.user_id === user.id))
       }
     }
-    
     fetchLikes()
   }, [postId, user])
 
@@ -35,21 +32,14 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
     setLoading(true)
 
     if (liked) {
-      await supabase
-        .from('likes')
-        .delete()
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
+      await supabase.from('likes').delete().eq('post_id', postId).eq('user_id', user.id)
       setLiked(false)
       setLikeCount(prev => prev - 1)
     } else {
-      await supabase
-        .from('likes')
-        .insert({ post_id: postId, user_id: user.id })
+      await supabase.from('likes').insert({ post_id: postId, user_id: user.id })
       setLiked(true)
       setLikeCount(prev => prev + 1)
     }
-
     setLoading(false)
   }
 
@@ -57,16 +47,15 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
     <button
       onClick={handleLike}
       disabled={!user || loading}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all text-sm font-medium
+      className={`flex items-center gap-2 px-3 py-1 rounded border font-mono text-xs transition-all
         ${liked
-          ? 'bg-red-50 border-red-300 text-red-500 hover:bg-red-100'
-          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+          ? 'border-red-500 text-red-400 bg-red-500 bg-opacity-10 hover:bg-opacity-20'
+          : 'border-dark-500 text-gray-500 hover:border-gray-400 hover:text-gray-300'
         }
-        ${!user ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        ${!user ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
-      <span>{liked ? '❤️' : '🤍'}</span>
-      <span>{likeCount} {likeCount === 1 ? 'Like' : 'Likes'}</span>
+      {liked ? '♥' : '♡'} {likeCount}
     </button>
   )
 }

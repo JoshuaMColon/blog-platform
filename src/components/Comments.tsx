@@ -7,9 +7,7 @@ interface Comment {
   content: string
   created_at: string
   user_id: string
-  profiles: {
-    username: string
-  }
+  profiles: { username: string }
 }
 
 interface CommentsProps {
@@ -34,7 +32,6 @@ const Comments = ({ postId }: CommentsProps) => {
       if (!error && data) setComments(data)
       setLoading(false)
     }
-
     fetchComments()
   }, [postId])
 
@@ -62,7 +59,6 @@ const Comments = ({ postId }: CommentsProps) => {
       setNewComment('')
       refreshComments()
     }
-
     setSubmitting(false)
   }
 
@@ -72,63 +68,63 @@ const Comments = ({ postId }: CommentsProps) => {
   }
 
   return (
-    <div className="mt-8">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
-        Comments ({comments.length})
-      </h2>
+    <div className="mt-4">
+      <div className="text-neon text-xs font-mono tracking-widest mb-4">
+        // comments ({comments.length})
+      </div>
 
       {user ? (
         <div className="mb-6">
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            placeholder="Write a comment..."
+            className="w-full bg-dark-700 border border-dark-500 rounded px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-neon transition-colors resize-none placeholder-gray-600"
+            placeholder="// write a comment..."
             rows={3}
           />
           <div className="flex justify-end mt-2">
             <button
               onClick={handleSubmit}
               disabled={submitting || !newComment.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+              className="px-4 py-1.5 bg-neon text-dark-900 rounded font-mono font-bold text-xs hover:bg-opacity-90 disabled:opacity-50 tracking-wide"
             >
-              {submitting ? 'Posting...' : 'Post Comment'}
+              {submitting ? '> posting...' : '> post_comment()'}
             </button>
           </div>
         </div>
       ) : (
-        <p className="text-gray-500 text-sm mb-6">
-          <a href="/login" className="text-blue-600 hover:underline">Sign in</a> to leave a comment.
+        <p className="text-gray-600 text-xs font-mono mb-6">
+          // <a href="/login" className="text-neon hover:underline">sign_in()</a> to comment
         </p>
       )}
 
       {loading ? (
-        <p className="text-gray-500 text-sm">Loading comments...</p>
+        <p className="text-gray-600 text-xs font-mono">$ loading...</p>
       ) : comments.length === 0 ? (
-        <p className="text-gray-500 text-sm">No comments yet. Be the first!</p>
+        <p className="text-gray-600 text-xs font-mono">// no comments yet</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {comments.map((comment) => (
-            <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-1">
+            <div key={comment.id} className="bg-dark-700 border border-dark-500 rounded p-4">
+              <div className="flex justify-between items-start mb-2">
                 <div>
-                  <span className="font-medium text-gray-800 text-sm">
+                  <span className="text-neon text-xs font-mono font-medium">
                     {comment.profiles?.username}
                   </span>
-                  <span className="text-gray-400 text-xs ml-2">
-                    {new Date(comment.created_at).toLocaleDateString()}
+                  <span className="text-gray-600 text-xs font-mono ml-2">
+                    · {new Date(comment.created_at).toLocaleDateString()}
                   </span>
                 </div>
                 {user?.id === comment.user_id && (
                   <button
                     onClick={() => handleDelete(comment.id)}
-                    className="text-red-400 hover:text-red-600 text-xs"
+                    className="text-gray-600 hover:text-red-400 text-xs font-mono transition-colors"
                   >
-                    Delete
+                    rm()
                   </button>
                 )}
               </div>
-              <p className="text-gray-700 text-sm">{comment.content}</p>
+              <p className="text-gray-300 text-sm font-mono">{comment.content}</p>
             </div>
           ))}
         </div>
