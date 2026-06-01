@@ -1,3 +1,4 @@
+import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -6,11 +7,11 @@ import CreatePost from "./pages/CreatePost";
 import EditPost from "./pages/EditPost";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import MyPosts from "./pages/MyPosts";
 import NotFound from "./pages/NotFound";
 import PostPage from "./pages/PostPage";
-import { Toaster } from 'react-hot-toast'
-import MyPosts from './pages/MyPosts'
-import Search from './pages/Search'
+import Search from "./pages/Search";
+import UserProfile from "./pages/UserProfile";
 
 function App() {
   return (
@@ -20,14 +21,15 @@ function App() {
         toastOptions={{
           duration: 3000,
           style: {
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '12px',
+            fontFamily: "JetBrains Mono, monospace",
+            fontSize: "12px",
           },
         }}
       />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/profile/:id" element={<UserProfile />} />
             <Route path="/search" element={<Search />} />
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -49,11 +51,14 @@ function App() {
               }
             />
             <Route path="*" element={<NotFound />} />
-            <Route path="/my-posts" element={
-              <ProtectedRoute>
-              <MyPosts />
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/my-posts"
+              element={
+                <ProtectedRoute>
+                  <MyPosts />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
@@ -120,8 +120,16 @@ const PostPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white font-mono mb-2">
             {post.title}
           </h1>
-          <p className="text-xs font-mono text-gray-500 mb-4">
-            // by {post.profiles?.username} · {new Date(post.created_at).toLocaleDateString()}
+          <p className="text-xs font-mono mb-4" style={{ color: 'var(--text-secondary)' }}>
+            // by{' '}
+            <Link
+              to={`/profile/${post.user_id}`}
+              className="hover:underline"
+              style={{ color: 'var(--accent)' }}
+            >
+              {post.profiles?.username}
+            </Link>
+            {' '}· {new Date(post.created_at).toLocaleDateString()}
           </p>
 
           {post.tags?.length > 0 && (

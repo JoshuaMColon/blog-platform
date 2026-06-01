@@ -216,7 +216,14 @@ const Search = () => {
                   </h3>
 
                   <p className="text-xs font-mono mb-3" style={{ color: 'var(--text-secondary)' }}>
-                    // by {post.profiles?.username}
+                    // by{' '}
+                    <Link
+                      to={`/profile/${post.user_id}`}
+                      className="hover:underline"
+                      style={{ color: 'var(--accent)' }}
+                    >
+                      {post.profiles?.username}
+                    </Link>
                   </p>
 
                   {post.tags?.length > 0 && (

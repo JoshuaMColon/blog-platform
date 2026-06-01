@@ -57,12 +57,15 @@ const Navbar = () => {
               >
                 + new_post()
               </Link>
-              <span
-                className="text-xs font-mono hidden md:block truncate max-w-32"
+              <Link
+                to={`/profile/${user.id}`}
+                className="text-xs font-mono hidden md:block truncate max-w-32 transition-colors"
                 style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
               >
                 {user.email}
-              </span>
+              </Link>
               <button
                 onClick={signOut}
                 className="text-xs font-mono transition-colors"
