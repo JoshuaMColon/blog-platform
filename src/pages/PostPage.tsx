@@ -7,6 +7,7 @@ import Comments from '../components/Comments'
 import LikeButton from '../components/LikeButton'
 import toast from 'react-hot-toast'
 import ConfirmModal from '../components/ConfirmModal'
+import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
 
 interface Post {
   id: string
@@ -139,6 +140,7 @@ const PostPage = () => {
               {post.profiles?.username}
             </Link>
             {' '}· {new Date(post.created_at).toLocaleDateString()}
+            {' '}· ⏱ {formatReadingTime(calculateReadingTime(post.content))}
           </p>
 
           {post.tags?.length > 0 && (

@@ -4,6 +4,7 @@ import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
 import LikeButton from '../components/LikeButton'
 import { Link, Navigate } from 'react-router-dom'
+import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
 
 interface Post {
   id: string
@@ -80,6 +81,9 @@ const Home = () => {
                   <div className="w-2 h-2 rounded-full bg-green-500 opacity-60" />
                   <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>
                     {new Date(post.created_at).toLocaleDateString()}
+                  </span>
+                  <span className="text-xs font-mono ml-auto" style={{ color: 'var(--text-secondary)' }}>
+                    ⏱ {formatReadingTime(calculateReadingTime(post.content))}
                   </span>
                 </div>
 

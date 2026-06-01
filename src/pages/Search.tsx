@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import Navbar from '../components/Navbar'
 import LikeButton from '../components/LikeButton'
+import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
 
 interface Post {
   id: string
@@ -204,8 +205,11 @@ const Search = () => {
                     <div className="w-2 h-2 rounded-full bg-yellow-500 opacity-60" />
                     <div className="w-2 h-2 rounded-full bg-green-500 opacity-60" />
                     <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>
-                      {new Date(post.created_at).toLocaleDateString()}
-                    </span>
+                    {new Date(post.created_at).toLocaleDateString()}
+                  </span>
+                  <span className="text-xs font-mono ml-auto" style={{ color: 'var(--text-secondary)' }}>
+                    ⏱ {formatReadingTime(calculateReadingTime(post.content))}
+                  </span>
                   </div>
 
                   <h3
