@@ -15,6 +15,7 @@ interface Post {
   tags: string[]
   created_at: string
   user_id: string
+  cover_image: string | null
   profiles: { username: string }
 }
 
@@ -117,6 +118,14 @@ const PostPage = () => {
             )}
           </div>
 
+          {post.cover_image && (
+            <img
+              src={post.cover_image}
+              alt={post.title}
+              className="w-full h-64 object-cover rounded-lg mb-6"
+            />
+          )}
+
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white font-mono mb-2">
             {post.title}
           </h1>
@@ -158,7 +167,7 @@ const PostPage = () => {
             ← back_to_feed()
           </button>
 
-          <hr className="my-8 border-gray-200 dark:border-dark-600" />
+          <h1 className="my-8 border-gray-200 dark:border-dark-600" />
           <Comments postId={post.id} />
         </div>
       </div>

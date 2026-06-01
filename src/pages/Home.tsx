@@ -12,6 +12,7 @@ interface Post {
   tags: string[]
   created_at: string
   user_id: string
+  cover_image: string | null
   profiles: { username: string }
 }
 
@@ -81,6 +82,15 @@ const Home = () => {
                     {new Date(post.created_at).toLocaleDateString()}
                   </span>
                 </div>
+
+                {post.cover_image && (
+                  <img
+                    src={post.cover_image}
+                    alt={post.title}
+                    className="w-full h-40 object-cover rounded-lg mb-4"
+                  />
+                )}
+
 
                 <h3
                   className="text-base sm:text-lg font-bold font-mono mb-2 transition-colors"

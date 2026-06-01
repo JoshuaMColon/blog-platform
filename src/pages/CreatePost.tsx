@@ -5,6 +5,7 @@ import { useAuth } from '../context/useAuth'
 import RichTextEditor from '../components/RichTextEditor'
 import Navbar from '../components/Navbar'
 import toast from 'react-hot-toast'
+import CoverImageUpload from '../components/CoverImageUpload'
 
 const CreatePost = () => {
   const { user, loading: authLoading } = useAuth()
@@ -14,6 +15,7 @@ const CreatePost = () => {
   const [tags, setTags] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [coverImage, setCoverImage] = useState('')
 
   if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -38,6 +40,7 @@ const CreatePost = () => {
       tags: tagsArray,
       user_id: user.id,
       published,
+      cover_image: coverImage || null,
     })
 
     if (error) {
@@ -48,7 +51,6 @@ const CreatePost = () => {
     toast.success('Post published!')
     navigate('/')
   }
-  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,6 +63,13 @@ const CreatePost = () => {
             {error}
           </div>
         )}
+
+        {/* Cover Image */}
+          <CoverImageUpload
+            currentImage={coverImage}
+            onUpload={(url) => setCoverImage(url)}
+            onRemove={() => setCoverImage('')}
+          />
 
         <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           <div>

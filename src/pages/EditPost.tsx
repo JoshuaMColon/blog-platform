@@ -5,6 +5,7 @@ import RichTextEditor from "../components/RichTextEditor";
 import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabase";
 import toast from 'react-hot-toast'
+import CoverImageUpload from '../components/CoverImageUpload'
 
 const EditPost = () => {
   const { id } = useParams();
@@ -16,6 +17,7 @@ const EditPost = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [coverImage, setCoverImage] = useState('')
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -39,6 +41,7 @@ const EditPost = () => {
       setTitle(data.title);
       setContent(data.content);
       setTags(data.tags?.join(", ") || "");
+      setCoverImage(data.cover_image || '')
       setLoading(false);
     };
 
@@ -64,6 +67,7 @@ const EditPost = () => {
         content,
         tags: tagsArray,
         published,
+        cover_image: coverImage || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -98,6 +102,13 @@ const EditPost = () => {
             {error}
           </div>
         )}
+
+        {/* Cover Image */}
+          <CoverImageUpload
+            currentImage={coverImage}
+            onUpload={(url) => setCoverImage(url)}
+            onRemove={() => setCoverImage('')}
+          />
 
         <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           {/* Title */}
