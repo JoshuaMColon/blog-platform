@@ -29,6 +29,15 @@ const Navbar = () => {
 
           {user ? (
             <>
+            <Link
+                to="/my-posts"
+                className="text-xs font-mono transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+              >
+                my_posts()
+              </Link>
               <Link
                 to="/create"
                 className="px-3 sm:px-4 py-1.5 rounded font-mono text-xs sm:text-sm font-bold transition-all tracking-wide"

@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import PostPage from "./pages/PostPage";
 import { Toaster } from 'react-hot-toast'
+import MyPosts from './pages/MyPosts'
 
 function App() {
   return (
@@ -46,6 +47,11 @@ function App() {
               }
             />
             <Route path="*" element={<NotFound />} />
+            <Route path="/my-posts" element={
+              <ProtectedRoute>
+              <MyPosts />
+              </ProtectedRoute>
+            } />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
