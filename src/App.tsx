@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import PostPage from "./pages/PostPage";
 import { Toaster } from 'react-hot-toast'
 import MyPosts from './pages/MyPosts'
+import Search from './pages/Search'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/search" element={<Search />} />
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/post/:id" element={<PostPage />} />

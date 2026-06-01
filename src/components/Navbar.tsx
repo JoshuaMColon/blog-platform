@@ -30,6 +30,15 @@ const Navbar = () => {
           {user ? (
             <>
             <Link
+                to="/search"
+                className="text-xs font-mono transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+              >
+                search()
+              </Link>
+            <Link
                 to="/my-posts"
                 className="text-xs font-mono transition-colors"
                 style={{ color: 'var(--text-secondary)' }}
