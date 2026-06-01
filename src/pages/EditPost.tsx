@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import RichTextEditor from "../components/RichTextEditor";
 import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabase";
+import toast from 'react-hot-toast'
 
 const EditPost = () => {
   const { id } = useParams();
@@ -68,11 +69,11 @@ const EditPost = () => {
       .eq("id", id);
 
     if (error) {
-      setError(error.message);
+      toast.error(error.message);
       setSaving(false);
       return;
     }
-
+    toast.success('Post saved!')
     navigate(`/post/${id}`);
   };
 

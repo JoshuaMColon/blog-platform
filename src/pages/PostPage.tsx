@@ -5,6 +5,8 @@ import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
 import Comments from '../components/Comments'
 import LikeButton from '../components/LikeButton'
+import toast from 'react-hot-toast'
+import ConfirmModal from '../components/ConfirmModal'
 
 interface Post {
   id: string
@@ -23,6 +25,7 @@ const PostPage = () => {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -39,9 +42,14 @@ const PostPage = () => {
   }, [id])
 
   const handleDelete = async () => {
-    if (!confirm('delete this post?')) return
     setDeleting(true)
-    await supabase.from('posts').delete().eq('id', id)
+    const { error } = await supabase.from('posts').delete().eq('id', id)
+    if (error) {
+      toast.error('Failed to delete post')
+      setDeleting(false)
+      return
+    }
+    toast.success('Post deleted!')
     navigate('/')
   }
 
@@ -87,9 +95,21 @@ const PostPage = () => {
                   edit()
                 </button>
                 <button
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteModal(true)}
                   disabled={deleting}
-                  className="text-xs font-mono text-gray-500 hover:text-red-500 transition-colors px-2 py-1 border border-gray-300 dark:border-dark-500 rounded hover:border-red-400 disabled:opacity-50"
+                  className="text-xs font-mono transition-colors px-2 py-1 border rounded disabled:opacity-50"
+                  style={{
+                    color: 'var(--text-secondary)',
+                    borderColor: 'var(--border)',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.color = '#ef4444'
+                    e.currentTarget.style.borderColor = '#ef4444'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.color = 'var(--text-secondary)'
+                    e.currentTarget.style.borderColor = 'var(--border)'
+                  }}
                 >
                   {deleting ? 'deleting...' : 'delete()'}
                 </button>
@@ -134,6 +154,18 @@ const PostPage = () => {
           <Comments postId={post.id} />
         </div>
       </div>
+
+      <ConfirmModal
+          isOpen={showDeleteModal}
+          title="// delete_post()"
+          message="Are you sure? This action cannot be undone."
+          confirmLabel="> delete()"
+          cancelLabel="cancel()"
+          danger={true}
+          onConfirm={() => { setShowDeleteModal(false); handleDelete() }}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+        
     </div>
   )
 }

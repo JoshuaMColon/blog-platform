@@ -1,6 +1,7 @@
 import type { Session, User } from "@supabase/supabase-js";
 import { createContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import toast from 'react-hot-toast'
 
 interface AuthContextType {
   user: User | null;
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    toast.success('Signed out!')
   };
 
   return (

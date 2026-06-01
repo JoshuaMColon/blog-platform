@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import RichTextEditor from '../components/RichTextEditor'
 import Navbar from '../components/Navbar'
+import toast from 'react-hot-toast'
 
 const CreatePost = () => {
   const { user, loading: authLoading } = useAuth()
@@ -40,13 +41,14 @@ const CreatePost = () => {
     })
 
     if (error) {
-      setError(error.message)
+      toast.error(error.message)
       setLoading(false)
       return
     }
-
+    toast.success('Post published!')
     navigate('/')
   }
+  
 
   return (
     <div className="min-h-screen bg-gray-50">

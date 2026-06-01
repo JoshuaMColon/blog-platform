@@ -8,10 +8,21 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import PostPage from "./pages/PostPage";
+import { Toaster } from 'react-hot-toast'
 
 function App() {
   return (
     <ThemeProvider>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '12px',
+          },
+        }}
+      />
       <BrowserRouter>
         <AuthProvider>
           <Routes>

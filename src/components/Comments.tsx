@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
+import toast from 'react-hot-toast'
 
 interface Comment {
   id: string
@@ -48,13 +49,20 @@ const Comments = ({ postId }: { postId: string }) => {
       user_id: user.id,
       content: newComment.trim(),
     })
-    if (!error) { setNewComment(''); refreshComments() }
-    setSubmitting(false)
+    if (!error) { 
+      setNewComment('') 
+      refreshComments()
+      toast.success('Comment posted!')
+  } else {
+      toast.error('Failed to post comment')
   }
+    setSubmitting(false)
+}
 
   const handleDelete = async (commentId: string) => {
     await supabase.from('comments').delete().eq('id', commentId)
     setComments(comments.filter(c => c.id !== commentId))
+    toast.success('Comment deleted!')
   }
 
   return (
