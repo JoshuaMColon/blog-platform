@@ -1,5 +1,5 @@
+import { Routes, Route } from 'react-router-dom'
 import { Toaster } from "react-hot-toast";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -14,8 +14,12 @@ import Search from "./pages/Search";
 import UserProfile from "./pages/UserProfile";
 import Following from './pages/Following';
 import Bookmarks from './pages/Bookmarks'
+import { AnimatePresence } from 'framer-motion'
+import { useLocation } from 'react-router-dom'
 
 function App() {
+  const location = useLocation()
+
   return (
     <ThemeProvider>
       <Toaster
@@ -23,61 +27,40 @@ function App() {
         toastOptions={{
           duration: 3000,
           style: {
-            fontFamily: "JetBrains Mono, monospace",
-            fontSize: "12px",
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '12px',
           },
         }}
       />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/profile/:id" element={<UserProfile />} />
-            <Route path="/search" element={<Search />} />
+      <AuthProvider>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/post/:slug" element={<PostPage />} />
-            <Route
-              path="/create"
-              element={
-                <ProtectedRoute>
-                  <CreatePost />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/edit/:slug"
-              element={
-                <ProtectedRoute>
-                  <EditPost />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-            <Route
-              path="/my-posts"
-              element={
-                <ProtectedRoute>
-                  <MyPosts />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/search" element={<Search />} />
             <Route path="/following" element={
-            <ProtectedRoute>
-            <Following />
-            </ProtectedRoute>
-            } 
-            />
+              <ProtectedRoute><Following /></ProtectedRoute>
+            } />
             <Route path="/bookmarks" element={
-            <ProtectedRoute>
-            <Bookmarks />
-            </ProtectedRoute>
-            } 
-            />
+              <ProtectedRoute><Bookmarks /></ProtectedRoute>
+            } />
+            <Route path="/create" element={
+              <ProtectedRoute><CreatePost /></ProtectedRoute>
+            } />
+            <Route path="/edit/:slug" element={
+              <ProtectedRoute><EditPost /></ProtectedRoute>
+            } />
+            <Route path="/my-posts" element={
+              <ProtectedRoute><MyPosts /></ProtectedRoute>
+            } />
+            <Route path="/profile/:id" element={<UserProfile />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
-        </AuthProvider>
-      </BrowserRouter>
+        </AnimatePresence>
+      </AuthProvider>
     </ThemeProvider>
-  );
+  )
 }
 
 export default App;

@@ -4,18 +4,19 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabase";
 import ThemeSelector from '../components/ThemeSelector'
+import { motion } from 'framer-motion'
 
 const Login = () => {
   const { user } = useAuth();
+  const { toggleTheme } = useTheme();
   const [email, setEmail] = useState("");
-  const { theme, toggleTheme } = useTheme();
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-   useEffect(() => {
+  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 't') toggleTheme()
     }
@@ -35,17 +36,13 @@ const Login = () => {
       if (error) setError(error.message);
       else setSuccess("Account created! You can now sign in.");
     } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
     }
     setLoading(false);
   };
 
-    return (
-    <div className={`min-h-screen flex items-center justify-center p-4 theme-${theme}`}>
+  return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: 'var(--bg-primary)' }}
@@ -54,7 +51,12 @@ const Login = () => {
         <ThemeSelector />
       </div>
 
-      <div className="w-full max-w-md">
+      <motion.div
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <div className="text-center mb-8">
           <div className="text-xs font-mono mb-2 tracking-widest" style={{ color: 'var(--accent)' }}>
             // welcome to
@@ -92,6 +94,7 @@ const Login = () => {
               <span className="font-bold">ERROR:</span> {error}
             </div>
           )}
+
           {success && (
             <div className="p-3 rounded mb-4 text-xs font-mono border" style={{ borderColor: 'var(--accent)', color: 'var(--accent)', backgroundColor: 'var(--bg-tertiary)' }}>
               <span className="font-bold">SUCCESS:</span> {success}
@@ -159,8 +162,7 @@ const Login = () => {
             </button>
           </p>
         </div>
-      </div>
-    </div>
+      </motion.div>
     </div>
   );
 };

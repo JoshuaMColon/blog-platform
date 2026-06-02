@@ -7,10 +7,11 @@ import LikeButton from '../components/LikeButton'
 import toast from 'react-hot-toast'
 import FollowButton from '../components/FollowButton'
 import SkeletonCard from '../components/SkeletonCard'
+import AnimatedList from '../components/AnimatedList'
+import { motion } from 'framer-motion'
 
 interface Profile {
   id: string
-  slug: string
   username: string
   bio: string | null
   avatar_url: string | null
@@ -69,13 +70,11 @@ const UserProfile = () => {
         setPostCount(postsData.length)
       }
 
-      // Fetch follower count
       const { count: followers } = await supabase
         .from('follows')
         .select('*', { count: 'exact', head: true })
         .eq('following_id', id)
 
-      // Fetch following count
       const { count: following } = await supabase
         .from('follows')
         .select('*', { count: 'exact', head: true })
@@ -83,7 +82,6 @@ const UserProfile = () => {
 
       setFollowerCount(followers ?? 0)
       setFollowingCount(following ?? 0)
-
       setLoading(false)
     }
 
@@ -112,13 +110,9 @@ const UserProfile = () => {
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
         <div className="space-y-4">
-          {/* Profile card skeleton */}
           <div
             className="rounded-lg border p-6 sm:p-8 animate-pulse"
-            style={{
-              backgroundColor: 'var(--bg-secondary)',
-              borderColor: 'var(--border)',
-            }}
+            style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
           >
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
@@ -152,12 +146,12 @@ const UserProfile = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
 
         {/* Profile card */}
-        <div
+        <motion.div
           className="rounded-lg border p-6 sm:p-8 mb-8"
-          style={{
-            backgroundColor: 'var(--bg-secondary)',
-            borderColor: 'var(--border)',
-          }}
+          style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
         >
           {/* Terminal bar */}
           <div className="flex items-center gap-1.5 mb-6 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
@@ -171,7 +165,6 @@ const UserProfile = () => {
 
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              {/* Avatar */}
               <div
                 className="w-16 h-16 rounded-lg border flex items-center justify-center font-mono font-bold text-2xl flex-shrink-0"
                 style={{
@@ -182,7 +175,6 @@ const UserProfile = () => {
               >
                 {profile.username.charAt(0).toUpperCase()}
               </div>
-
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold font-mono" style={{ color: 'var(--text-primary)' }}>
                   {profile.username}
@@ -194,35 +186,20 @@ const UserProfile = () => {
             </div>
 
             <div className="flex items-center gap-4 flex-wrap">
-              {/* Stats */}
               <div className="flex gap-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>
-                    {postCount}
-                  </div>
-                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-                    posts
-                  </div>
+                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>{postCount}</div>
+                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>posts</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>
-                    {followerCount}
-                  </div>
-                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-                    followers
-                  </div>
+                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>{followerCount}</div>
+                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>followers</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>
-                    {followingCount}
-                  </div>
-                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-                    following
-                  </div>
+                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>{followingCount}</div>
+                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>following</div>
                 </div>
               </div>
-
-              {/* Follow button */}
               <FollowButton profileId={profile.id} />
             </div>
           </div>
@@ -286,17 +263,23 @@ const UserProfile = () => {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Posts section */}
-        <div className="mb-6 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+        {/* Posts section header */}
+        <motion.div
+          className="mb-6 pb-4 border-b"
+          style={{ borderColor: 'var(--border)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           <div className="text-xs font-mono tracking-widest mb-1" style={{ color: 'var(--accent)' }}>
             // published posts
           </div>
           <h2 className="text-xl font-bold font-mono" style={{ color: 'var(--text-primary)' }}>
             posts.by({profile.username})
           </h2>
-        </div>
+        </motion.div>
 
         {posts.length === 0 && loading ? (
           <div className="space-y-4">
@@ -319,69 +302,71 @@ const UserProfile = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {posts.map(post => (
-              <div
-                key={post.id}
-                className="rounded-lg border p-4 sm:p-6 transition-all group"
-                style={{
-                  backgroundColor: 'var(--bg-secondary)',
-                  borderColor: 'var(--border)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-              >
-                <div className="flex items-center gap-1.5 mb-3">
-                  <div className="w-2 h-2 rounded-full bg-red-500 opacity-60" />
-                  <div className="w-2 h-2 rounded-full bg-yellow-500 opacity-60" />
-                  <div className="w-2 h-2 rounded-full bg-green-500 opacity-60" />
-                  <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>
-                    {new Date(post.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-
-                <h3
-                  className="font-bold font-mono text-base sm:text-lg mb-2 transition-colors"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {post.title}
-                </h3>
-
-                {post.tags?.length > 0 && (
-                  <div className="flex gap-2 mb-3 flex-wrap">
-                    {post.tags.map(tag => (
-                      <span
-                        key={tag}
-                        className="text-xs px-2 py-0.5 rounded font-mono border"
-                        style={{
-                          borderColor: 'var(--accent)',
-                          color: 'var(--accent)',
-                          backgroundColor: 'var(--bg-tertiary)',
-                        }}
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
+            <AnimatedList>
+              {posts.map(post => (
                 <div
-                  className="text-sm font-mono line-clamp-2 mb-4"
-                  style={{ color: 'var(--text-secondary)' }}
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                />
+                  key={post.id}
+                  className="rounded-lg border p-4 sm:p-6 transition-all group"
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderColor: 'var(--border)',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+                >
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500 opacity-60" />
+                    <div className="w-2 h-2 rounded-full bg-yellow-500 opacity-60" />
+                    <div className="w-2 h-2 rounded-full bg-green-500 opacity-60" />
+                    <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
 
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <LikeButton postId={post.id} />
-                  <Link
-                    to={`/post/${post.slug}`}
-                    className="text-xs font-mono hover:underline"
-                    style={{ color: 'var(--accent)' }}
+                  <h3
+                    className="font-bold font-mono text-base sm:text-lg mb-2 transition-colors"
+                    style={{ color: 'var(--text-primary)' }}
                   >
-                    read_more() →
-                  </Link>
+                    {post.title}
+                  </h3>
+
+                  {post.tags?.length > 0 && (
+                    <div className="flex gap-2 mb-3 flex-wrap">
+                      {post.tags.map(tag => (
+                        <span
+                          key={tag}
+                          className="text-xs px-2 py-0.5 rounded font-mono border"
+                          style={{
+                            borderColor: 'var(--accent)',
+                            color: 'var(--accent)',
+                            backgroundColor: 'var(--bg-tertiary)',
+                          }}
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div
+                    className="text-sm font-mono line-clamp-2 mb-4"
+                    style={{ color: 'var(--text-secondary)' }}
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                  />
+
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <LikeButton postId={post.id} />
+                    <Link
+                      to={`/post/${post.slug}`}
+                      className="text-xs font-mono hover:underline"
+                      style={{ color: 'var(--accent)' }}
+                    >
+                      read_more() →
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </AnimatedList>
           </div>
         )}
       </div>
