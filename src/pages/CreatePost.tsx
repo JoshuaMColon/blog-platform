@@ -6,6 +6,7 @@ import RichTextEditor from '../components/RichTextEditor'
 import Navbar from '../components/Navbar'
 import toast from 'react-hot-toast'
 import CoverImageUpload from '../components/CoverImageUpload'
+import { generateUniqueSlug } from '../utils/slugify'
 
 const CreatePost = () => {
   const { user, loading: authLoading } = useAuth()
@@ -33,6 +34,7 @@ const CreatePost = () => {
     setError('')
 
     const tagsArray = tags.split(',').map(t => t.trim()).filter(Boolean)
+    const slug = await generateUniqueSlug(title, supabase)
 
     const { error } = await supabase.from('posts').insert({
       title,
@@ -41,6 +43,7 @@ const CreatePost = () => {
       user_id: user.id,
       published,
       cover_image: coverImage || null,
+      slug,
     })
 
     if (error) {

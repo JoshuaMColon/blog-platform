@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 
 interface Profile {
   id: string
+  slug: string
   username: string
   bio: string | null
   avatar_url: string | null
@@ -16,6 +17,7 @@ interface Profile {
 
 interface Post {
   id: string
+  slug: string
   title: string
   content: string
   tags: string[]
@@ -310,7 +312,7 @@ const UserProfile = () => {
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <LikeButton postId={post.id} />
                   <Link
-                    to={`/post/${post.id}`}
+                    to={`/post/${post.slug}`}
                     className="text-xs font-mono hover:underline"
                     style={{ color: 'var(--accent)' }}
                   >

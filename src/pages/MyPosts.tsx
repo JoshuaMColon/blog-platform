@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 
 interface Post {
   id: string
+  slug: string
   title: string
   content: string
   tags: string[]
@@ -250,7 +251,7 @@ const MyPosts = () => {
                       {post.published ? 'unpublish()' : 'publish()'}
                     </button>
                     <button
-                      onClick={() => navigate(`/edit/${post.id}`)}
+                      onClick={() => navigate(`/edit/${post.slug}`)}
                       className="text-xs font-mono px-3 py-1.5 rounded border transition-all"
                       style={{
                         borderColor: 'var(--border)',
@@ -269,7 +270,7 @@ const MyPosts = () => {
                     </button>
                     {post.published && (
                       <button
-                        onClick={() => navigate(`/post/${post.id}`)}
+                        onClick={() => navigate(`/post/${post.slug}`)}
                         className="text-xs font-mono px-3 py-1.5 rounded border transition-all"
                         style={{
                           borderColor: 'var(--border)',

@@ -33,7 +33,7 @@ function App() {
             <Route path="/search" element={<Search />} />
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/post/:id" element={<PostPage />} />
+            <Route path="/post/:slug" element={<PostPage />} />
             <Route
               path="/create"
               element={
@@ -43,7 +43,7 @@ function App() {
               }
             />
             <Route
-              path="/edit/:id"
+              path="/edit/:slug"
               element={
                 <ProtectedRoute>
                   <EditPost />

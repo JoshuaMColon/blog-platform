@@ -11,6 +11,7 @@ import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
 
 interface Post {
   id: string
+  slug: string
   title: string
   content: string
   tags: string[]
@@ -21,7 +22,7 @@ interface Post {
 }
 
 const PostPage = () => {
-  const { id } = useParams()
+  const { slug } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [post, setPost] = useState<Post | null>(null)
@@ -34,18 +35,18 @@ const PostPage = () => {
       const { data, error } = await supabase
         .from('posts')
         .select('*, profiles(username)')
-        .eq('id', id)
+        .eq('slug', slug)
         .single()
 
       if (!error && data) setPost(data)
       setLoading(false)
     }
     fetchPost()
-  }, [id])
+  }, [slug])
 
   const handleDelete = async () => {
     setDeleting(true)
-    const { error } = await supabase.from('posts').delete().eq('id', id)
+    const { error } = await supabase.from('posts').delete().eq('id', post!.id)
     if (error) {
       toast.error('Failed to delete post')
       setDeleting(false)
@@ -86,12 +87,12 @@ const PostPage = () => {
             <div className="w-3 h-3 rounded-full bg-yellow-500" />
             <div className="w-3 h-3 rounded-full bg-green-500" />
             <span className="text-gray-400 text-xs font-mono ml-2 flex-1 truncate">
-              posts/{post.id}.md
+              posts/{post.slug}.md
             </span>
             {isOwner && (
               <div className="flex gap-2 ml-auto">
                 <button
-                  onClick={() => navigate(`/edit/${post.id}`)}
+                  onClick={() => navigate(`/edit/${post.slug}`)}
                   className="text-xs font-mono text-gray-500 hover:text-green-600 dark:hover:text-neon transition-colors px-2 py-1 border border-gray-300 dark:border-dark-500 rounded hover:border-green-500 dark:hover:border-neon"
                 >
                   edit()
