@@ -5,6 +5,7 @@ import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
 import LikeButton from '../components/LikeButton'
 import toast from 'react-hot-toast'
+import FollowButton from '../components/FollowButton'
 
 interface Profile {
   id: string
@@ -34,6 +35,8 @@ const UserProfile = () => {
   const [bio, setBio] = useState('')
   const [savingBio, setSavingBio] = useState(false)
   const [postCount, setPostCount] = useState(0)
+  const [followerCount, setFollowerCount] = useState(0)
+  const [followingCount, setFollowingCount] = useState(0)
 
   const isOwner = user?.id === id
 
@@ -64,6 +67,21 @@ const UserProfile = () => {
         setPosts(postsData)
         setPostCount(postsData.length)
       }
+
+      // Fetch follower count
+      const { count: followers } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', id)
+
+      // Fetch following count
+      const { count: following } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', id)
+
+      setFollowerCount(followers ?? 0)
+      setFollowingCount(following ?? 0)
 
       setLoading(false)
     }
@@ -157,16 +175,37 @@ const UserProfile = () => {
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="flex gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>
-                  {postCount}
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Stats */}
+              <div className="flex gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>
+                    {postCount}
+                  </div>
+                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
+                    posts
+                  </div>
                 </div>
-                <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-                  posts
+                <div className="text-center">
+                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>
+                    {followerCount}
+                  </div>
+                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
+                    followers
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold font-mono" style={{ color: 'var(--accent)' }}>
+                    {followingCount}
+                  </div>
+                  <div className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
+                    following
+                  </div>
                 </div>
               </div>
+
+              {/* Follow button */}
+              <FollowButton profileId={profile.id} />
             </div>
           </div>
 

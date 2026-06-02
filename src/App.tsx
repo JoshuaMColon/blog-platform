@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import PostPage from "./pages/PostPage";
 import Search from "./pages/Search";
 import UserProfile from "./pages/UserProfile";
+import Following from './pages/Following';
 
 function App() {
   return (
@@ -58,6 +59,12 @@ function App() {
                   <MyPosts />
                 </ProtectedRoute>
               }
+            />
+            <Route path="/following" element={
+            <ProtectedRoute>
+            <Following />
+            </ProtectedRoute>
+            } 
             />
           </Routes>
         </AuthProvider>
