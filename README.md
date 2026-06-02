@@ -86,7 +86,7 @@ The application is designed to be a professional demonstration of full-stack ski
    npm run dev
    ```
 
-   Open [http://localhost:5173](http://localhost:5173).
+   Open [(https://blog-platform-one-xi.vercel.app/).
 
 ---
 
@@ -132,12 +132,6 @@ This repository is intended as a professional portfolio piece that highlights:
 - integration with a serverless backend platform (Supabase)
 - thoughtful UX patterns for authenticated applications
 - responsive and accessible UI design
-
----
-
-## License
-
-MIT
 
 ---
 
