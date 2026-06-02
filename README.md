@@ -1,137 +1,113 @@
-# &lt;BlogPlatform /&gt;
+# Blog Platform
 
-A full-stack blog platform built with React, TypeScript, and Supabase. Features a retro/terminal-inspired UI with full light and dark mode support.
+A polished full-stack blogging application built with React, TypeScript, Tailwind CSS, and Supabase. This project demonstrates modern front-end architecture, secure authentication, rich text publishing, and a polished responsive user experience.
 
-🔗 **Live Demo:** [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)
-
----
-
-## Features
-
-- **Authentication** — Sign up and sign in with email and password
-- **Create Posts** — Write and publish blog posts using a rich text editor (TipTap)
-- **Edit & Delete** — Full control over your own posts
-- **Comments** — Leave comments on any post
-- **Likes** — Like and unlike posts
-- **Dark / Light Mode** — Follows system preference with a manual toggle
-- **Responsive Design** — Works on desktop, tablet, and mobile
-- **Protected Routes** — Only authenticated users can create or edit posts
+> Portfolio-ready blog platform with a focus on usability, accessibility, and production-quality engineering.
 
 ---
 
-## Tech Stack
+## Overview
 
-| Layer | Technology |
-|---|---|
-| Frontend | React + TypeScript |
-| Styling | Tailwind CSS |
-| Rich Text Editor | TipTap |
-| Backend & Database | Supabase (Auth, PostgreSQL, RLS) |
-| Deployment | Vercel |
+This project is a complete blogging platform that supports:
+
+- authenticated user registration and login
+- creation, editing, and deletion of personal blog posts
+- rich text editing for content creation
+- comments, likes, and a clean post feed
+- light/dark theme support and responsive design
+- Supabase-backed persistence for authentication and data storage
+
+The application is designed to be a professional demonstration of full-stack skills, with a refined UI and robust route protection.
+
+---
+
+## Key Features
+
+- **Full Authentication Flow** — Email/password signup, login, and session management
+- **Post Management** — Create, update, delete, and publish blog posts
+- **Rich Text Editing** — Author content using a modern editor experience
+- **Social Interactions** — Comments and likes on published posts
+- **Theme System** — Light and dark mode with user preference support
+- **Responsive Layout** — Optimized for desktop, tablet, and mobile screens
+- **Protected Routes** — Secure route access for authenticated users only
+
+---
+
+## Technology Stack
+
+| Layer      | Technology                   |
+| ---------- | ---------------------------- |
+| Frontend   | React + TypeScript           |
+| Styling    | Tailwind CSS                 |
+| Editor     | TipTap                       |
+| Backend    | Supabase (Auth + PostgreSQL) |
+| Deployment | Vercel                       |
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
-- A [Supabase](https://supabase.com) account
+- Supabase account
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository
+
    ```bash
    git clone https://github.com/JoshuaMColon/blog-platform.git
    cd blog-platform
    ```
 
-2. **Install dependencies**
+2. Install dependencies
+
    ```bash
    npm install
    ```
 
-3. **Set up environment variables**
+3. Configure environment variables
 
-   Create a `.env` file in the root of the project:
-   ```
+   Create a `.env` file in the project root:
+
+   ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
-   You can find these in your Supabase project under **Settings → API**.
 
-4. **Set up the database**
+4. Initialize the Supabase schema
 
-   Run the following SQL in your Supabase **SQL Editor**:
+   Use the Supabase SQL editor to create the required tables for profiles, posts, comments, and likes.
 
-   ```sql
-   create table profiles (
-     id uuid references auth.users on delete cascade primary key,
-     username text unique not null,
-     avatar_url text,
-     bio text,
-     created_at timestamp with time zone default timezone('utc', now())
-   );
+5. Start the development server
 
-   create table posts (
-     id uuid default gen_random_uuid() primary key,
-     user_id uuid references profiles(id) on delete cascade not null,
-     title text not null,
-     content text not null,
-     cover_image text,
-     tags text[],
-     published boolean default false,
-     created_at timestamp with time zone default timezone('utc', now()),
-     updated_at timestamp with time zone default timezone('utc', now())
-   );
-
-   create table comments (
-     id uuid default gen_random_uuid() primary key,
-     post_id uuid references posts(id) on delete cascade not null,
-     user_id uuid references profiles(id) on delete cascade not null,
-     content text not null,
-     created_at timestamp with time zone default timezone('utc', now())
-   );
-
-   create table likes (
-     id uuid default gen_random_uuid() primary key,
-     post_id uuid references posts(id) on delete cascade not null,
-     user_id uuid references profiles(id) on delete cascade not null,
-     unique(post_id, user_id)
-   );
-   ```
-
-5. **Run the development server**
    ```bash
    npm run dev
    ```
-   Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+   Open [http://localhost:5173](http://localhost:5173).
 
 ---
 
-## How to Use
+## Usage
 
-### As a Visitor
-- You will be redirected to the **login page** on arrival
-- Create an account using your email and password
-- Once signed in, you can browse all published posts on the home feed
+### Visitor Experience
 
-### Creating a Post
-1. Click **+ new_post()** in the navbar
-2. Enter a title, tags (comma separated), and write your content using the rich text editor
-3. Click **Publish** to make it live, or **Save Draft** to save privately
+- Users sign in or register to access the blog experience
+- Authenticated users can browse published posts and interact with content
 
-### Editing or Deleting a Post
-1. Open any post you authored
-2. Click **edit()** to update the title, content, or tags
-3. Click **delete()** to permanently remove the post
+### Author Workflow
 
-### Comments & Likes
-- Scroll to the bottom of any post to leave a comment
-- Click the **♡ like button** to like or unlike a post
+- Create a new post with title, tags, cover image, and rich text content
+- Publish posts publicly or keep them as drafts for later editing
+- Update or remove any post authored by the signed-in user
 
-### Dark / Light Mode
-- Click the **☀ light / ⬛ dark** toggle in the navbar to switch themes
-- The app also automatically follows your system's color scheme preference
+### Interaction Features
+
+- Leave comments on posts
+- Like or unlike posts to signal engagement
+- Switch between light and dark mode for a tailored reading experience
 
 ---
 
@@ -139,34 +115,30 @@ A full-stack blog platform built with React, TypeScript, and Supabase. Features 
 
 ```
 src/
-├── components/
-│   ├── Comments.tsx       # Comments section
-│   ├── LikeButton.tsx     # Like/unlike button
-│   ├── Navbar.tsx         # Navigation bar
-│   ├── ProtectedRoute.tsx # Auth guard for routes
-│   └── RichTextEditor.tsx # TipTap rich text editor
-├── context/
-│   ├── AuthContext.tsx    # Authentication state
-│   ├── ThemeContext.tsx   # Light/dark mode state
-│   └── useAuth.ts         # Auth hook
-├── lib/
-│   └── supabase.ts        # Supabase client
-├── pages/
-│   ├── CreatePost.tsx     # Create new post
-│   ├── EditPost.tsx       # Edit existing post
-│   ├── Home.tsx           # Post feed
-│   ├── Login.tsx          # Login / signup
-│   ├── NotFound.tsx       # 404 page
-│   └── PostPage.tsx       # Individual post view
-└── App.tsx                # Routes and providers
+├── components/        # Reusable UI components and feature widgets
+├── context/           # Global auth and theme providers
+├── lib/               # Supabase client and API helpers
+├── pages/             # Route-based page components
+└── App.tsx            # Application routes and providers
 ```
+
+---
+
+## Why This Project
+
+This repository is intended as a professional portfolio piece that highlights:
+
+- modern React and TypeScript development
+- integration with a serverless backend platform (Supabase)
+- thoughtful UX patterns for authenticated applications
+- responsive and accessible UI design
 
 ---
 
 ## License
 
-MIT — feel free to use this project as a reference or starting point.
+MIT
 
 ---
 
-*Built by [Joshua Colon](https://github.com/JoshuaMColon)*
+_Created by Joshua Colon_
