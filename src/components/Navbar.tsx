@@ -39,6 +39,15 @@ const Navbar = () => {
                 following()
               </Link>
             <Link
+                to="/bookmarks"
+                className="text-xs font-mono transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+              >
+                bookmarks()
+              </Link>
+            <Link
                 to="/search"
                 className="text-xs font-mono transition-colors"
                 style={{ color: 'var(--text-secondary)' }}

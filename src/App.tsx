@@ -13,6 +13,7 @@ import PostPage from "./pages/PostPage";
 import Search from "./pages/Search";
 import UserProfile from "./pages/UserProfile";
 import Following from './pages/Following';
+import Bookmarks from './pages/Bookmarks'
 
 function App() {
   return (
@@ -63,6 +64,12 @@ function App() {
             <Route path="/following" element={
             <ProtectedRoute>
             <Following />
+            </ProtectedRoute>
+            } 
+            />
+            <Route path="/bookmarks" element={
+            <ProtectedRoute>
+            <Bookmarks />
             </ProtectedRoute>
             } 
             />

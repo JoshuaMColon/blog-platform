@@ -8,6 +8,7 @@ import LikeButton from '../components/LikeButton'
 import toast from 'react-hot-toast'
 import ConfirmModal from '../components/ConfirmModal'
 import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
+import BookmarkButton from '../components/BookmarkButton'
 
 interface Post {
   id: string
@@ -154,8 +155,10 @@ const PostPage = () => {
             </div>
           )}
 
-          <div className="mb-6">
+          {/* Likes and Bookmark */}
+          <div className="flex items-center gap-3 mb-6">
             <LikeButton postId={post.id} />
+            <BookmarkButton postId={post.id} />
           </div>
 
           <div
