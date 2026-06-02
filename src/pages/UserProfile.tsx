@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar'
 import LikeButton from '../components/LikeButton'
 import toast from 'react-hot-toast'
 import FollowButton from '../components/FollowButton'
+import SkeletonCard from '../components/SkeletonCard'
 
 interface Profile {
   id: string
@@ -109,10 +110,27 @@ const UserProfile = () => {
   if (loading) return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <Navbar />
-      <div className="max-w-4xl mx-auto p-8">
-        <p className="font-mono text-sm" style={{ color: 'var(--text-secondary)' }}>
-          $ loading profile...
-        </p>
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
+        <div className="space-y-4">
+          {/* Profile card skeleton */}
+          <div
+            className="rounded-lg border p-6 sm:p-8 animate-pulse"
+            style={{
+              backgroundColor: 'var(--bg-secondary)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
+              <div className="space-y-2">
+                <div className="h-6 rounded w-32" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
+                <div className="h-3 rounded w-24" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
+              </div>
+            </div>
+            <div className="h-4 rounded w-full" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
+          </div>
+          {[...Array(2)].map((_, i) => <SkeletonCard key={i} />)}
+        </div>
       </div>
     </div>
   )
@@ -280,7 +298,11 @@ const UserProfile = () => {
           </h2>
         </div>
 
-        {posts.length === 0 ? (
+        {posts.length === 0 && loading ? (
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : posts.length === 0 ? (
           <div className="rounded-lg p-8 text-center border" style={{ borderColor: 'var(--border)' }}>
             <p className="font-mono text-sm" style={{ color: 'var(--text-secondary)' }}>
               // no published posts yet

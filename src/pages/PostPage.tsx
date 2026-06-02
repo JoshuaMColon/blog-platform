@@ -9,6 +9,7 @@ import toast from 'react-hot-toast'
 import ConfirmModal from '../components/ConfirmModal'
 import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
 import BookmarkButton from '../components/BookmarkButton'
+import SkeletonPost from '../components/SkeletonPost'
 
 interface Post {
   id: string
@@ -57,7 +58,7 @@ const PostPage = () => {
     navigate('/')
   }
 
-  if (loading) return (
+  if (loading) return <SkeletonPost />; (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-900">
       <Navbar />
       <div className="max-w-4xl mx-auto p-8">
