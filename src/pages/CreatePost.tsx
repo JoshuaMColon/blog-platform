@@ -1,4 +1,6 @@
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useState } from 'react'
+import Spinner from '../components/Spinner'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
@@ -9,6 +11,7 @@ import CoverImageUpload from '../components/CoverImageUpload'
 import { generateUniqueSlug } from '../utils/slugify'
 
 const CreatePost = () => {
+  useDocumentTitle('New post')
   const { user, isDemo, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
@@ -121,9 +124,11 @@ const CreatePost = () => {
             <button
               onClick={() => handleSubmit(true)}
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              aria-busy={loading}
+              className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? 'Publishing...' : 'Publish'}
+              {loading && <Spinner label="Saving post" />}
+              {loading ? 'Saving...' : 'Publish'}
             </button>
           </div>
         </div>

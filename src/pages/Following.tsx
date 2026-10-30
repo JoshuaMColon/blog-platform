@@ -1,17 +1,18 @@
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useEffect, useState } from 'react'
-import { sanitizeHtml } from '../utils/sanitize'
 import { Link, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
 import LikeButton from '../components/LikeButton'
-import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
+import { formatReadingTime, POST_CARD_COLUMNS } from '../utils/readingTime'
 
 interface Post {
   id: string
   slug: string
   title: string
-  content: string
+  excerpt: string
+  reading_minutes: number
   tags: string[]
   created_at: string
   user_id: string
@@ -20,6 +21,7 @@ interface Post {
 }
 
 const Following = () => {
+  useDocumentTitle('Following')
   const { user, loading: authLoading } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,12 +46,12 @@ const Following = () => {
       // Get posts from followed users
       const { data, error } = await supabase
         .from('posts')
-        .select('*, profiles(username)')
+        .select(`${POST_CARD_COLUMNS}, profiles(username)`)
         .eq('published', true)
         .in('user_id', followingIds)
         .order('created_at', { ascending: false })
 
-      if (!error && data) setPosts(data)
+      if (!error && data) setPosts(data as unknown as Post[])
       setLoading(false)
     }
 
@@ -123,7 +125,7 @@ const Following = () => {
                     {new Date(post.created_at).toLocaleDateString()}
                   </span>
                   <span className="text-xs font-mono ml-auto" style={{ color: 'var(--text-secondary)' }}>
-                    ⏱ {formatReadingTime(calculateReadingTime(post.content))}
+                    ⏱ {formatReadingTime(post.reading_minutes)}
                   </span>
                 </div>
 
@@ -171,11 +173,12 @@ const Following = () => {
                   </div>
                 )}
 
-                <div
+                <p
                   className="text-sm font-mono line-clamp-2 mb-4"
                   style={{ color: 'var(--text-secondary)' }}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
-                />
+                >
+                  {post.excerpt}
+                </p>
 
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <LikeButton postId={post.id} />

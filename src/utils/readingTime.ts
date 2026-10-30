@@ -14,3 +14,9 @@ export const formatReadingTime = (minutes: number): string => {
   if (minutes === 1) return '1 min read'
   return `${minutes} min read`
 }
+/**
+ * Columns needed to render a post card. `excerpt` and `reading_minutes` are
+ * generated columns in Postgres, so feeds never download full post bodies.
+ */
+export const POST_CARD_COLUMNS: string =
+  'id, slug, title, excerpt, reading_minutes, tags, created_at, user_id, cover_image'

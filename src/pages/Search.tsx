@@ -1,19 +1,20 @@
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useEffect, useState } from 'react'
-import { sanitizeHtml } from '../utils/sanitize'
 import { Link } from 'react-router-dom'
 import LikeButton from '../components/LikeButton'
 import Navbar from '../components/Navbar'
 import SkeletonCard from '../components/SkeletonCard'
 import AnimatedList from '../components/AnimatedList'
 import { supabase } from '../lib/supabase'
-import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
+import { formatReadingTime, POST_CARD_COLUMNS } from '../utils/readingTime'
 import { motion } from 'framer-motion'
 
 interface Post {
   id: string
   slug: string
   title: string
-  content: string
+  excerpt: string
+  reading_minutes: number
   tags: string[]
   created_at: string
   user_id: string
@@ -21,6 +22,7 @@ interface Post {
 }
 
 const Search = () => {
+  useDocumentTitle('Search')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
@@ -59,18 +61,26 @@ const Search = () => {
       return
     }
 
+    // Strip characters that have meaning inside a PostgREST or() filter.
+    const term = searchQuery.trim().replace(/[,()*%\\]/g, ' ').replace(/\s+/g, ' ')
+    if (!term) {
+      setResults([])
+      setSearched(true)
+      return
+    }
+
     setLoading(true)
     setSearched(true)
     setActiveTag(null)
 
     const { data, error } = await supabase
       .from('posts')
-      .select('*, profiles(username)')
+      .select(`${POST_CARD_COLUMNS}, profiles(username)`)
       .eq('published', true)
-      .or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+      .or(`title.ilike.%${term}%,content.ilike.%${term}%`)
       .order('created_at', { ascending: false })
 
-    if (!error && data) setResults(data)
+    if (!error && data) setResults(data as unknown as Post[])
     setLoading(false)
   }
 
@@ -82,12 +92,12 @@ const Search = () => {
 
     const { data, error } = await supabase
       .from('posts')
-      .select('*, profiles(username)')
+      .select(`${POST_CARD_COLUMNS}, profiles(username)`)
       .eq('published', true)
       .contains('tags', [tag])
       .order('created_at', { ascending: false })
 
-    if (!error && data) setResults(data)
+    if (!error && data) setResults(data as unknown as Post[])
     setLoading(false)
   }
 
@@ -234,7 +244,7 @@ const Search = () => {
                         {new Date(post.created_at).toLocaleDateString()}
                       </span>
                       <span className="text-xs font-mono ml-auto" style={{ color: 'var(--text-secondary)' }}>
-                        ⏱ {formatReadingTime(calculateReadingTime(post.content))}
+                        ⏱ {formatReadingTime(post.reading_minutes)}
                       </span>
                     </div>
 
@@ -275,11 +285,12 @@ const Search = () => {
                       </div>
                     )}
 
-                    <div
+                    <p
                       className="text-sm font-mono line-clamp-2 mb-4"
                       style={{ color: 'var(--text-secondary)' }}
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
-                    />
+                    >
+                      {post.excerpt}
+                    </p>
 
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <LikeButton postId={post.id} />

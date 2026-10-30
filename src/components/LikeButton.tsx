@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import toast from 'react-hot-toast'
@@ -11,55 +12,88 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
   const { user } = useAuth()
   const [liked, setLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [burst, setBurst] = useState(0)
+  const pending = useRef(false)
 
   useEffect(() => {
+    let cancelled = false
     const fetchLikes = async () => {
       const { data, error } = await supabase
         .from('likes')
-        .select('*')
+        .select('user_id')
         .eq('post_id', postId)
 
-      if (!error && data) {
+      if (!cancelled && !error && data) {
         setLikeCount(data.length)
-        if (user) setLiked(data.some(like => like.user_id === user.id))
+        setLiked(Boolean(user && data.some(like => like.user_id === user.id)))
       }
     }
     fetchLikes()
+    return () => { cancelled = true }
   }, [postId, user])
 
   const handleLike = async () => {
-    if (!user || loading) return
-    setLoading(true)
+    if (!user || pending.current) return
+    pending.current = true
 
-    if (liked) {
-      await supabase.from('likes').delete().eq('post_id', postId).eq('user_id', user.id)
-      setLiked(false)
-      setLikeCount(prev => prev - 1)
-    } else {
-      const { error } = await supabase.from('likes').insert({ post_id: postId, user_id: user.id })
-      if (error) {
-        toast.error(error.message.startsWith('Demo limit') ? error.message : 'Failed to like post')
-      } else {
-        setLiked(true)
-        setLikeCount(prev => prev + 1)
-      }
+    // Optimistic update: flip immediately, roll back if the request fails.
+    const wasLiked = liked
+    setLiked(!wasLiked)
+    setLikeCount(c => c + (wasLiked ? -1 : 1))
+    if (!wasLiked) setBurst(b => b + 1)
+
+    const { error } = wasLiked
+      ? await supabase.from('likes').delete().eq('post_id', postId).eq('user_id', user.id)
+      : await supabase.from('likes').insert({ post_id: postId, user_id: user.id })
+
+    if (error) {
+      setLiked(wasLiked)
+      setLikeCount(c => c + (wasLiked ? 1 : -1))
+      toast.error(error.message.startsWith('Demo limit') ? error.message : wasLiked ? 'Could not remove like' : 'Could not like post')
     }
-    setLoading(false)
+    pending.current = false
   }
 
   return (
     <button
+      type="button"
       onClick={handleLike}
-      disabled={!user || loading}
-      className="flex items-center gap-2 px-3 py-1 rounded border font-mono text-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+      disabled={!user}
+      aria-pressed={liked}
+      aria-label={liked ? `Unlike (${likeCount} likes)` : `Like (${likeCount} likes)`}
+      title={user ? undefined : 'Sign in to like posts'}
+      className="relative flex items-center gap-2 px-3 py-1 rounded border font-mono text-xs disabled:opacity-40"
       style={{
         borderColor: liked ? '#ef4444' : 'var(--border)',
         color: liked ? '#ef4444' : 'var(--text-secondary)',
         backgroundColor: liked ? 'rgba(239,68,68,0.1)' : 'transparent',
       }}
     >
-      {liked ? '♥' : '♡'} {likeCount}
+      <span className="relative inline-flex w-3 justify-center" aria-hidden="true">
+        <motion.span
+          key={liked ? `on-${burst}` : 'off'}
+          initial={liked ? { scale: 0.4 } : false}
+          animate={{ scale: [0.4, 1.35, 1] }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="inline-block"
+        >
+          {liked ? '♥' : '♡'}
+        </motion.span>
+        <AnimatePresence>
+          {liked && burst > 0 && (
+            <motion.span
+              key={`ring-${burst}`}
+              className="absolute inset-0 rounded-full"
+              style={{ boxShadow: '0 0 0 2px rgba(239,68,68,0.5)' }}
+              initial={{ scale: 0.6, opacity: 0.9 }}
+              animate={{ scale: 2.2, opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+            />
+          )}
+        </AnimatePresence>
+      </span>
+      <span className="tabular-nums">{likeCount}</span>
     </button>
   )
 }

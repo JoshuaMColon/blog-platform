@@ -6,7 +6,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["dist"]),
+  globalIgnores(["dist", "playwright-report", "test-results"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
@@ -20,6 +20,20 @@ export default defineConfig([
     },
     rules: {
       "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    // Node-side files: Playwright tests/config and build scripts.
+    files: ["e2e/**/*.ts", "playwright.config.ts", "scripts/**/*.mjs"],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+  {
+    files: ["e2e/**/*.ts"],
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
     },
   },
 ]);

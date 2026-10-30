@@ -1,21 +1,25 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
-import CreatePost from "./pages/CreatePost";
-import EditPost from "./pages/EditPost";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import MyPosts from "./pages/MyPosts";
 import NotFound from "./pages/NotFound";
 import PostPage from "./pages/PostPage";
 import Search from "./pages/Search";
-import UserProfile from "./pages/UserProfile";
 import Following from './pages/Following';
 import Bookmarks from './pages/Bookmarks'
 import { AnimatePresence } from 'framer-motion'
 import { useLocation } from 'react-router-dom'
+import RouteFallback from './components/RouteFallback'
+
+// Heavier, less-visited routes (TipTap editor, profile) load on demand.
+const CreatePost = lazy(() => import('./pages/CreatePost'))
+const EditPost = lazy(() => import('./pages/EditPost'))
+const MyPosts = lazy(() => import('./pages/MyPosts'))
+const UserProfile = lazy(() => import('./pages/UserProfile'))
 
 function App() {
   const location = useLocation()
@@ -34,6 +38,7 @@ function App() {
       />
       <AuthProvider>
         <AnimatePresence mode="wait">
+          <Suspense fallback={<RouteFallback />} key={location.pathname}>
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -57,6 +62,7 @@ function App() {
             <Route path="/profile/:id" element={<UserProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AnimatePresence>
       </AuthProvider>
     </ThemeProvider>

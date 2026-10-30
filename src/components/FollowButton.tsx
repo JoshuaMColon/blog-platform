@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import Spinner from './Spinner'
 
 interface FollowButtonProps {
   profileId: string
@@ -76,9 +77,12 @@ const FollowButton = ({ profileId }: FollowButtonProps) => {
 
   return (
     <button
+      type="button"
       onClick={handleFollow}
       disabled={loading}
-      className="px-4 py-1.5 rounded border font-mono text-xs font-bold transition-all disabled:opacity-50"
+      aria-busy={loading}
+      aria-pressed={following}
+      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded border font-mono text-xs font-bold disabled:opacity-60"
       style={{
         backgroundColor: following ? 'transparent' : 'var(--accent)',
         color: following ? 'var(--text-secondary)' : 'var(--btn-text)',
@@ -97,7 +101,8 @@ const FollowButton = ({ profileId }: FollowButtonProps) => {
         }
       }}
     >
-      {loading ? '...' : following ? 'unfollow()' : '+ follow()'}
+      {loading && <Spinner label={following ? 'Unfollowing' : 'Following'} />}
+      {following ? 'unfollow()' : '+ follow()'}
     </button>
   )
 }

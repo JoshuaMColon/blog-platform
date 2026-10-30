@@ -1,3 +1,5 @@
+import Spinner from './Spinner'
+
 interface ConfirmModalProps {
   isOpen: boolean
   title: string
@@ -7,6 +9,7 @@ interface ConfirmModalProps {
   onConfirm: () => void
   onCancel: () => void
   danger?: boolean
+  loading?: boolean
 }
 
 const ConfirmModal = ({
@@ -18,6 +21,7 @@ const ConfirmModal = ({
   onConfirm,
   onCancel,
   danger = false,
+  loading = false,
 }: ConfirmModalProps) => {
   if (!isOpen) return null
 
@@ -28,9 +32,9 @@ const ConfirmModal = ({
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-lg border p-6 shadow-2x1"
+        className="w-full max-w-sm rounded-lg border p-6 shadow-2xl"
         style={{
-          backgroundColor: 'var(--bg-secondary',
+          backgroundColor: 'var(--bg-secondary)',
           borderColor: 'var(--border)',
         }}
         onClick={e => e.stopPropagation()}
@@ -54,7 +58,9 @@ const ConfirmModal = ({
 
         <div className="flex gap-3 justify-end">
           <button
+            type="button"
             onClick={onCancel}
+            disabled={loading}
             className="px-4 py-1.5 rounded font-mono text-xs border transition-all"
             style={{
               borderColor: 'var(--border)',
@@ -64,13 +70,17 @@ const ConfirmModal = ({
             {cancelLabel}
           </button>
           <button
+            type="button"
             onClick={onConfirm}
-            className="px-4 py-1.5 rounded font-mono text-xs font-bold transition-all"
+            disabled={loading}
+            aria-busy={loading}
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded font-mono text-xs font-bold transition-all disabled:opacity-70"
             style={{
               backgroundColor: danger ? '#ef4444' : 'var(--accent)',
               color: danger ? '#ffffff' : 'var(--btn-text)',
             }}
           >
+            {loading && <Spinner label="Working" />}
             {confirmLabel}
           </button>
         </div>

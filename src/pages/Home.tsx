@@ -1,5 +1,5 @@
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useEffect, useState } from 'react'
-import { sanitizeHtml } from '../utils/sanitize'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
@@ -8,14 +8,15 @@ import Pagination from '../components/Pagination'
 import SkeletonCard from '../components/SkeletonCard'
 import AnimatedList from '../components/AnimatedList'
 import { Link, Navigate } from 'react-router-dom'
-import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
+import { formatReadingTime, POST_CARD_COLUMNS } from '../utils/readingTime'
 import { motion } from 'framer-motion'
 
 interface Post {
   id: string
   slug: string
   title: string
-  content: string
+  excerpt: string
+  reading_minutes: number
   tags: string[]
   created_at: string
   user_id: string
@@ -26,6 +27,7 @@ interface Post {
 const POSTS_PER_PAGE = 5
 
 const Home = () => {
+  useDocumentTitle('Feed')
   const { user, loading: authLoading } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -43,13 +45,13 @@ const Home = () => {
 
       const { data, error, count } = await supabase
         .from('posts')
-        .select('*, profiles(username)', { count: 'exact' })
+        .select(`${POST_CARD_COLUMNS}, profiles(username)`, { count: 'exact' })
         .eq('published', true)
         .order('created_at', { ascending: false })
         .range(from, to)
 
       if (!error && data) {
-        setPosts(data)
+        setPosts(data as unknown as Post[])
         setTotalCount(count ?? 0)
       }
       setLoading(false)
@@ -139,7 +141,7 @@ const Home = () => {
                         {new Date(post.created_at).toLocaleDateString()}
                       </span>
                       <span className="text-xs font-mono ml-auto" style={{ color: 'var(--text-secondary)' }}>
-                        ⏱ {formatReadingTime(calculateReadingTime(post.content))}
+                        ⏱ {formatReadingTime(post.reading_minutes)}
                       </span>
                     </div>
 
@@ -187,11 +189,12 @@ const Home = () => {
                       </div>
                     )}
 
-                    <div
+                    <p
                       className="text-sm font-mono line-clamp-2 mb-4"
                       style={{ color: 'var(--text-secondary)' }}
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
-                    />
+                    >
+                      {post.excerpt}
+                    </p>
 
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <LikeButton postId={post.id} />

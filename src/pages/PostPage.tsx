@@ -3,6 +3,7 @@ import { sanitizeHtml } from '../utils/sanitize'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import Navbar from '../components/Navbar'
 import Comments from '../components/Comments'
 import LikeButton from '../components/LikeButton'
@@ -23,6 +24,7 @@ interface Post {
   created_at: string
   user_id: string
   cover_image: string | null
+  excerpt?: string | null
   profiles: { username: string }
 }
 
@@ -34,6 +36,11 @@ const PostPage = () => {
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  useDocumentTitle(
+    loading ? undefined : post ? post.title : 'Post not found',
+    post?.excerpt ?? undefined,
+  )
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -222,7 +229,8 @@ const PostPage = () => {
         confirmLabel="> delete()"
         cancelLabel="cancel()"
         danger={true}
-        onConfirm={() => { setShowDeleteModal(false); handleDelete() }}
+        loading={deleting}
+        onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
       />
     </div>

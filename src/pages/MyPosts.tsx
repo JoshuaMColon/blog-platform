@@ -1,4 +1,6 @@
+import { useDocumentTitle } from "../hooks/useDocumentTitle"
 import { useEffect, useState } from "react";
+import Spinner from "../components/Spinner";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
@@ -19,12 +21,15 @@ interface Post {
 }
 
 const MyPosts = () => {
+  useDocumentTitle('My posts')
   const { user } = useAuth();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "published" | "drafts">("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMyPosts = async () => {
@@ -46,6 +51,7 @@ const MyPosts = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
 
+    setDeleting(true);
     const { error } = await supabase.from("posts").delete().eq("id", deleteId);
 
     if (error) {
@@ -54,14 +60,17 @@ const MyPosts = () => {
       setPosts(posts.filter((p) => p.id !== deleteId));
       toast.success("Post deleted!");
     }
+    setDeleting(false);
     setDeleteId(null);
   };
 
   const handleTogglePublish = async (post: Post) => {
+    setTogglingId(post.id);
     const { error } = await supabase
       .from("posts")
       .update({ published: !post.published })
       .eq("id", post.id);
+    setTogglingId(null);
 
     if (error) {
       toast.error("Failed to update post");
@@ -285,7 +294,9 @@ const MyPosts = () => {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={() => handleTogglePublish(post)}
-                      className="text-xs font-mono px-3 py-1.5 rounded border transition-all"
+                      disabled={togglingId === post.id}
+                      aria-busy={togglingId === post.id}
+                      className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded border transition-all disabled:opacity-60"
                       style={{
                         borderColor: "var(--border)",
                         color: "var(--text-secondary)",
@@ -299,6 +310,7 @@ const MyPosts = () => {
                         e.currentTarget.style.color = "var(--text-secondary)";
                       }}
                     >
+                      {togglingId === post.id && <Spinner size={10} label="Updating" />}
                       {post.published ? "unpublish()" : "publish()"}
                     </button>
                     <button
@@ -372,6 +384,7 @@ const MyPosts = () => {
         confirmLabel="> delete()"
         cancelLabel="cancel()"
         danger={true}
+        loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
       />

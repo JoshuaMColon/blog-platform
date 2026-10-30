@@ -1,47 +1,35 @@
 # Blog Platform
 
-A polished full-stack blogging application built with React, TypeScript, Tailwind CSS, and Supabase. This project demonstrates modern front-end architecture, secure authentication, rich text publishing, and a polished responsive user experience.
+A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supabase. It covers sign-up and login, a TipTap rich-text editor, comments, likes, follows, bookmarks, tag search and a one-click guest demo, with Postgres row-level security (RLS) doing the access control.
 
-> Portfolio-ready blog platform with a focus on usability, accessibility, and production-quality engineering.
+**Live:** https://blog-platform-one-xi.vercel.app
 
----
-
-## Overview
-
-This project is a complete blogging platform that supports:
-
-- authenticated user registration and login
-- creation, editing, and deletion of personal blog posts
-- rich text editing for content creation
-- comments, likes, and a clean post feed
-- light/dark theme support and responsive design
-- Supabase-backed persistence for authentication and data storage
-
-The application is designed to be a professional demonstration of full-stack skills, with a refined UI and robust route protection.
+> A portfolio project. It's a working app with real auth and data, not a hardened production service; see [Known limits](#known-limits).
 
 ---
 
-## Key Features
+## Features
 
-- **Full Authentication Flow** — Email/password signup, login, and session management
-- **Post Management** — Create, update, delete, and publish blog posts
-- **Rich Text Editing** — Author content using a modern editor experience
-- **Social Interactions** — Comments and likes on published posts
-- **Theme System** — Light and dark mode with user preference support
-- **Responsive Layout** — Optimized for desktop, tablet, and mobile screens
-- **Protected Routes** — Secure route access for authenticated users only
+- **Auth**: email/password sign-up and login, plus an optional anonymous **guest demo**
+- **Posts**: create, edit, delete, draft or publish, with tags, a cover image and rich text (TipTap)
+- **Social**: comments (edit and delete your own), likes, follows, bookmarks and a following feed
+- **Discovery**: search by title or content, and filter by tag
+- **Themes**: five colour themes with a light/dark toggle
+- **Feel**: subtle press feedback on every control (mouse and touch), spinners on async actions, and optimistic likes that roll back if the write fails
+- **SEO**: per-page titles, meta description, Open Graph/Twitter cards, `robots.txt` and a generated `sitemap.xml`
 
 ---
 
 ## Technology Stack
 
-| Layer      | Technology                   |
-| ---------- | ---------------------------- |
-| Frontend   | React + TypeScript           |
-| Styling    | Tailwind CSS                 |
-| Editor     | TipTap                       |
-| Backend    | Supabase (Auth + PostgreSQL) |
-| Deployment | Vercel                       |
+| Layer      | Technology                                     |
+| ---------- | ---------------------------------------------- |
+| Frontend   | React 19 + TypeScript, Vite, React Router 7    |
+| Styling    | Tailwind CSS, framer-motion                    |
+| Editor     | TipTap (lazy-loaded on the create/edit routes) |
+| Backend    | Supabase (Auth, Postgres + RLS, Storage, Cron) |
+| Testing    | ESLint, TypeScript, Playwright                 |
+| Deployment | Vercel (SPA rewrite in `vercel.json`)          |
 
 ---
 
@@ -78,7 +66,7 @@ The application is designed to be a professional demonstration of full-stack ski
 
 4. Initialize the Supabase schema
 
-   Use the Supabase SQL editor to create the required tables for profiles, posts, comments, and likes.
+   The base tables (`profiles`, `posts`, `comments`, `likes`, `follows`, `bookmarks`) were created in the Supabase dashboard and aren't in this repo yet. Everything added since then (guest demo, RLS tuning, generated excerpt/reading-time columns) is in `supabase/migrations/`.
 
 5. Start the development server
 
@@ -86,7 +74,17 @@ The application is designed to be a professional demonstration of full-stack ski
    npm run dev
    ```
 
-   Open [(https://blog-platform-one-xi.vercel.app/).
+   Open http://localhost:5173.
+
+6. Checks and tests
+
+   ```bash
+   npm run typecheck && npm run lint && npm run build
+   npx playwright install chromium   # first run only
+   npm run test:e2e                  # builds, serves with vite preview, runs Playwright
+   ```
+
+   Set `BASE_URL=https://your-preview.vercel.app` to run the same tests against a deployed preview.
 
 ---
 
@@ -94,8 +92,7 @@ The application is designed to be a professional demonstration of full-stack ski
 
 ### Visitor Experience
 
-- Users sign in or register to access the blog experience
-- Authenticated users can browse published posts and interact with content
+- Post pages (`/post/<slug>`) and search are public; the home feed, following, bookmarks and all writes need an account or the guest demo
 
 ### Author Workflow
 
@@ -105,9 +102,9 @@ The application is designed to be a professional demonstration of full-stack ski
 
 ### Interaction Features
 
-- Leave comments on posts
-- Like or unlike posts to signal engagement
-- Switch between light and dark mode for a tailored reading experience
+- Leave comments on posts, and edit or delete your own
+- Like or unlike posts, follow authors and bookmark posts
+- Pick one of five themes and toggle light/dark
 
 ---
 
@@ -117,25 +114,17 @@ The application is designed to be a professional demonstration of full-stack ski
 src/
 ├── components/        # Reusable UI components and feature widgets
 ├── context/           # Global auth and theme providers
-├── lib/               # Supabase client and API helpers
-├── pages/             # Route-based page components
+├── hooks/             # useDocumentTitle (per-page title/meta)
+├── lib/               # Supabase client
+├── pages/             # Route-based page components (heavy ones lazy-loaded)
+├── utils/             # sanitising, slugs, reading time, press feedback
 └── App.tsx            # Application routes and providers
+e2e/                   # Playwright tests
+scripts/               # generate-sitemap.mjs (runs after vite build)
+supabase/migrations/   # SQL migrations
 ```
 
 ---
-
-## Why This Project
-
-This repository is intended as a professional portfolio piece that highlights:
-
-- modern React and TypeScript development
-- integration with a serverless backend platform (Supabase)
-- thoughtful UX patterns for authenticated applications
-- responsive and accessible UI design
-
----
-
-_Created by Joshua Colon_
 
 ## Guest demo mode
 
@@ -148,3 +137,54 @@ The login screen has a **Try the demo** button that signs visitors in with Supab
 - **Requires:** Supabase Dashboard → Authentication → Sign In / Providers → **Allow anonymous sign-ins**. Until that's on, the button shows a friendly "not switched on yet" message.
 
 Database changes live in `supabase/migrations/`.
+
+### How access control works
+
+```mermaid
+flowchart TD
+    V[Visitor] -->|email + password| U[Authenticated user]
+    V -->|Try the demo| G["Anonymous guest<br/>(is_anonymous = true)"]
+    U --> API[Supabase REST API]
+    G --> API
+    API --> RLS{"RLS policies<br/>(select auth.uid()) = user_id"}
+    RLS -->|own rows only| W["insert / update / delete<br/>posts, comments, likes,<br/>follows, bookmarks, profile"]
+    RLS -->|anyone| R["read published posts,<br/>comments, likes, profiles"]
+    G --> T{"Demo-limit triggers"}
+    T -->|"over cap: 3 posts, 20 comments,<br/>50 likes, length limits"| X["Error: Demo limit ..."]
+    T -->|"within cap"| RLS
+    C["pg_cron: cleanup-demo-users<br/>(hourly)"] -->|"delete guests older than 24h<br/>(content cascades)"| G
+```
+
+- Every write policy checks ownership with `(select auth.uid())`, so Postgres evaluates it once per query instead of once per row.
+- A `BEFORE UPDATE` trigger on `comments` stops `post_id`, `user_id` and `created_at` from changing when someone edits a comment.
+- `posts.excerpt` and `posts.reading_minutes` are generated columns, so feed cards never download full post bodies.
+
+---
+
+## Performance & Lighthouse
+
+Lighthouse (lab run, mobile uses the default Moto G Power throttling, desktop the desktop preset) on the live site. "Home" is `/`, which redirects logged-out visitors to `/login`.
+
+| Page | Device  | Performance | Accessibility | Best Practices | SEO |
+| ---- | ------- | ----------- | ------------- | -------------- | --- |
+| Home | Mobile  | 95          | 91            | 96             | 82  |
+| Home | Desktop | 100         | 91            | 100            | 82  |
+| Post | Mobile  | 80          | 85            | 100            | 82  |
+| Post | Desktop | 99          | 85            | 100            | 82  |
+
+_Scores from 30 Oct 2026, before the perf/SEO pass. Lab scores vary from run to run by a few points._
+
+---
+
+## Known limits
+
+- **Contrast:** some theme accent colours fail WCAG AA contrast on light backgrounds, which is most of the Accessibility deduction. The themes haven't been changed.
+- **Guest demo** needs **Allow anonymous sign-ins** turned on in Supabase, and ideally CAPTCHA to slow down bots.
+- **Leaked-password protection** (Supabase Auth → Attack Protection) is off.
+- **The base schema** isn't checked in as a migration (see step 4).
+- **Search** is a simple `ilike` match, not full-text search.
+- **The main JS bundle** is still about 190 KB gzipped (Supabase client, framer-motion, router); the editor and authoring pages are split out.
+
+---
+
+_Created by Joshua Colon_
