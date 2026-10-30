@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 
 interface RichTextEditorProps {
@@ -6,10 +6,37 @@ interface RichTextEditorProps {
   onChange: (content: string) => void
 }
 
+type Tool = {
+  label: string
+  title: string
+  run: (e: Editor) => void
+  active: (e: Editor) => boolean
+}
+
+const TOOLS: (Tool | 'sep')[] = [
+  { label: 'B', title: 'Bold', run: e => e.chain().focus().toggleBold().run(), active: e => e.isActive('bold') },
+  { label: 'I', title: 'Italic', run: e => e.chain().focus().toggleItalic().run(), active: e => e.isActive('italic') },
+  { label: 'S', title: 'Strikethrough', run: e => e.chain().focus().toggleStrike().run(), active: e => e.isActive('strike') },
+  'sep',
+  { label: 'H1', title: 'Heading 1', run: e => e.chain().focus().toggleHeading({ level: 1 }).run(), active: e => e.isActive('heading', { level: 1 }) },
+  { label: 'H2', title: 'Heading 2', run: e => e.chain().focus().toggleHeading({ level: 2 }).run(), active: e => e.isActive('heading', { level: 2 }) },
+  'sep',
+  { label: '• List', title: 'Bullet list', run: e => e.chain().focus().toggleBulletList().run(), active: e => e.isActive('bulletList') },
+  { label: '1. List', title: 'Numbered list', run: e => e.chain().focus().toggleOrderedList().run(), active: e => e.isActive('orderedList') },
+  'sep',
+  { label: 'Code', title: 'Code block', run: e => e.chain().focus().toggleCodeBlock().run(), active: e => e.isActive('codeBlock') },
+  { label: 'Quote', title: 'Blockquote', run: e => e.chain().focus().toggleBlockquote().run(), active: e => e.isActive('blockquote') },
+]
+
 const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: [StarterKit],
     content,
+    // keep toolbar pressed states in sync with the selection
+    shouldRerenderOnTransaction: true,
+    editorProps: {
+      attributes: { role: 'textbox', 'aria-multiline': 'true', 'aria-label': 'Post content' },
+    },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
@@ -18,73 +45,28 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   if (!editor) return null
 
   return (
-    <div className="border border-dark-500 rounded-lg overflow-hidden bg-dark-700">
-      {/* Toolbar */}
-      <div className="flex gap-1 p-2 border-b border-dark-500 bg-dark-800 flex-wrap">
-        <button
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          B
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          I
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          S
-        </button>
-        <div className="w-px bg-gray-300 mx-1" />
-        <button
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          H1
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          H2
-        </button>
-        <div className="w-px bg-gray-300 mx-1" />
-        <button
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          • List
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          1. List
-        </button>
-        <div className="w-px bg-gray-300 mx-1" />
-        <button
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          Code
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={`px-3 py-1 rounded text-sm font-bold font-mono text-gray-300 ${editor.isActive('bold') ? 'bg-dark-600 text-neon' : 'hover:bg-dark-600'}`}
-        >
-          Quote
-        </button>
+    <div className="hud-editor border">
+      <div className="hud-editor-toolbar" role="toolbar" aria-label="Formatting">
+        {TOOLS.map((tool, i) =>
+          tool === 'sep' ? (
+            <span key={`sep-${i}`} className="hud-editor-sep" aria-hidden="true" />
+          ) : (
+            <button
+              key={tool.label}
+              type="button"
+              title={tool.title}
+              aria-label={tool.title}
+              aria-pressed={tool.active(editor)}
+              onClick={() => tool.run(editor)}
+              className="hud-editor-btn"
+            >
+              {tool.label}
+            </button>
+          ),
+        )}
       </div>
 
-      {/* Editor */}
-      <EditorContent
-        editor={editor}
-        className="prose max-w-none p-4 min-h-64 focus:outline-none bg-dark-700 text-gray-200"
-      />
+      <EditorContent editor={editor} className="hud-editor-body post-body" />
     </div>
   )
 }

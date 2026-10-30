@@ -14,6 +14,7 @@ import BookmarkButton from '../components/BookmarkButton'
 import SkeletonPost from '../components/SkeletonPost'
 import FadeIn from '../components/FadeIn'
 import { motion } from 'framer-motion'
+import HudMark from '../components/HudMark'
 
 interface Post {
   id: string
@@ -88,7 +89,7 @@ const PostPage = () => {
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
         <motion.div
-          className="rounded-lg border p-6 sm:p-8"
+          className="hud-panel border p-6 sm:p-8"
           style={{
             backgroundColor: 'var(--bg-secondary)',
             borderColor: 'var(--border)',
@@ -99,9 +100,7 @@ const PostPage = () => {
         >
           {/* Terminal bar */}
           <div className="flex items-center gap-1.5 mb-6 pb-4 border-b flex-wrap" style={{ borderColor: 'var(--border)' }}>
-            <div className="w-3 h-3 rounded-full bg-red-500" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500" />
-            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <HudMark size="lg" />
             <span className="text-xs font-mono ml-2 flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
               posts/{post.slug}.md
             </span>
@@ -128,8 +127,8 @@ const PostPage = () => {
                   className="text-xs font-mono transition-colors px-2 py-1 border rounded disabled:opacity-50"
                   style={{ color: 'var(--text-secondary)', borderColor: 'var(--border)' }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.color = '#ef4444'
-                    e.currentTarget.style.borderColor = '#ef4444'
+                    e.currentTarget.style.color = 'var(--danger)'
+                    e.currentTarget.style.borderColor = 'var(--danger)'
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.color = 'var(--text-secondary)'
@@ -155,7 +154,7 @@ const PostPage = () => {
           )}
 
           {/* Title */}
-          <h1 className="text-2xl sm:text-3xl font-bold font-mono mb-2" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="hud-title text-2xl sm:text-3xl font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
             {post.title}
           </h1>
 
@@ -181,8 +180,8 @@ const PostPage = () => {
                   key={tag}
                   className="text-xs px-2 py-0.5 rounded font-mono border"
                   style={{
-                    borderColor: 'var(--accent)',
-                    color: 'var(--accent)',
+                    borderColor: 'var(--accent-2)',
+                              color: 'var(--accent-2)',
                     backgroundColor: 'var(--bg-tertiary)',
                   }}
                 >
@@ -200,7 +199,7 @@ const PostPage = () => {
 
           {/* Content */}
           <div
-            className="prose max-w-none font-mono text-sm leading-relaxed"
+            className="post-body"
             style={{ color: 'var(--text-primary)' }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
           />

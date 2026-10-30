@@ -1,6 +1,15 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 
-export type ColorTheme = 'retro' | 'minimal' | 'warm' | 'ocean' | 'sunset'
+/**
+ * Cybernetic HUD palettes. Every palette ships a dark (default) and a light
+ * variant; text/accent pairs are checked against WCAG AA (4.5:1) for small text.
+ *
+ * Variables:
+ *   --accent / --accent-2   primary neon and secondary signal colour
+ *   --accent-rgb / --accent-2-rgb   the same as "r, g, b" for rgba() glows
+ *   --danger                destructive actions and errors
+ */
+export type ColorTheme = 'neon' | 'acid' | 'ultraviolet' | 'ghost'
 export type DarkMode = 'dark' | 'light'
 
 interface ThemeContextType {
@@ -12,8 +21,10 @@ interface ThemeContextType {
   toggleTheme: () => void
 }
 
+export const DEFAULT_THEME: ColorTheme = 'neon'
+
 const ThemeContext = createContext<ThemeContextType>({
-  colorTheme: 'retro',
+  colorTheme: DEFAULT_THEME,
   darkMode: 'dark',
   setColorTheme: () => {},
   toggleDarkMode: () => {},
@@ -23,165 +34,177 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export const themeConfig: Record<ColorTheme, {
   label: string
-  emoji: string
+  swatch: string
   dark: Record<string, string>
   light: Record<string, string>
 }> = {
-  retro: {
-    label: 'Retro/Techy',
-    emoji: '⌨️',
+  neon: {
+    label: 'Neon Grid',
+    swatch: '#00e5ff',
     dark: {
-      '--bg-primary': '#0a0a0a',
-      '--bg-secondary': '#111111',
-      '--bg-tertiary': '#1a1a1a',
-      '--border': '#222222',
-      '--text-primary': '#e2e8f0',
-      '--text-secondary': '#94a3b8',
-      '--accent': '#39ff14',
-      '--accent-hover': '#2dd10f',
-      '--accent-text': '#0a0a0a',
-      '--btn-text': '#0a0a0a',
+      '--bg-primary': '#05070d',
+      '--bg-secondary': '#0a0f1a',
+      '--bg-tertiary': '#111a2b',
+      '--border': '#1f3150',
+      '--text-primary': '#e6f1ff',
+      '--text-secondary': '#93a8c6',
+      '--accent': '#00e5ff',
+      '--accent-hover': '#6cf3ff',
+      '--accent-text': '#021016',
+      '--btn-text': '#021016',
+      '--accent-2': '#ff3dd8',
+      '--danger': '#ff5c7a',
+      '--accent-rgb': '0, 229, 255',
+      '--accent-2-rgb': '255, 61, 216',
     },
     light: {
-      '--bg-primary': '#f8fafc',
+      '--bg-primary': '#eaf0f7',
       '--bg-secondary': '#ffffff',
-      '--bg-tertiary': '#f1f5f9',
-      '--border': '#e2e8f0',
-      '--text-primary': '#1e293b',
-      '--text-secondary': '#64748b',
-      '--accent': '#16a34a',
-      '--accent-hover': '#15803d',
+      '--bg-tertiary': '#e2eaf4',
+      '--border': '#b9c8da',
+      '--text-primary': '#0a1424',
+      '--text-secondary': '#46576f',
+      '--accent': '#00677c',
+      '--accent-hover': '#00505f',
       '--accent-text': '#ffffff',
       '--btn-text': '#ffffff',
+      '--accent-2': '#a8127a',
+      '--danger': '#b8123a',
+      '--accent-rgb': '0, 103, 124',
+      '--accent-2-rgb': '168, 18, 122',
     },
   },
-  minimal: {
-    label: 'Minimal',
-    emoji: '◻️',
+  acid: {
+    label: 'Acid',
+    swatch: '#c6ff1a',
     dark: {
-      '--bg-primary': '#18181b',
-      '--bg-secondary': '#27272a',
-      '--bg-tertiary': '#3f3f46',
-      '--border': '#3f3f46',
-      '--text-primary': '#fafafa',
-      '--text-secondary': '#a1a1aa',
-      '--accent': '#ffffff',
-      '--accent-hover': '#e4e4e7',
-      '--accent-text': '#18181b',
-      '--btn-text': '#18181b',
+      '--bg-primary': '#050807',
+      '--bg-secondary': '#0b100e',
+      '--bg-tertiary': '#131b18',
+      '--border': '#24342e',
+      '--text-primary': '#eafff4',
+      '--text-secondary': '#93ab9f',
+      '--accent': '#c6ff1a',
+      '--accent-hover': '#dbff66',
+      '--accent-text': '#0b1200',
+      '--btn-text': '#0b1200',
+      '--accent-2': '#a685ff',
+      '--danger': '#ff5c7a',
+      '--accent-rgb': '198, 255, 26',
+      '--accent-2-rgb': '166, 133, 255',
     },
     light: {
-      '--bg-primary': '#ffffff',
-      '--bg-secondary': '#fafafa',
-      '--bg-tertiary': '#f4f4f5',
-      '--border': '#e4e4e7',
-      '--text-primary': '#09090b',
-      '--text-secondary': '#71717a',
-      '--accent': '#09090b',
-      '--accent-hover': '#27272a',
+      '--bg-primary': '#eef3ec',
+      '--bg-secondary': '#ffffff',
+      '--bg-tertiary': '#e4ece1',
+      '--border': '#bccbb8',
+      '--text-primary': '#0d1a10',
+      '--text-secondary': '#4a5c4d',
+      '--accent': '#3f5e00',
+      '--accent-hover': '#2f4700',
       '--accent-text': '#ffffff',
       '--btn-text': '#ffffff',
+      '--accent-2': '#5a2fc2',
+      '--danger': '#b8123a',
+      '--accent-rgb': '63, 94, 0',
+      '--accent-2-rgb': '90, 47, 194',
     },
   },
-  warm: {
-    label: 'Warm/Cozy',
-    emoji: '☕',
+  ultraviolet: {
+    label: 'Ultraviolet',
+    swatch: '#b48cff',
     dark: {
-      '--bg-primary': '#1c1410',
-      '--bg-secondary': '#2a1f16',
-      '--bg-tertiary': '#3d2d1f',
-      '--border': '#4a3728',
-      '--text-primary': '#f5e6d3',
-      '--text-secondary': '#c4a882',
-      '--accent': '#f59e0b',
-      '--accent-hover': '#d97706',
-      '--accent-text': '#1c1410',
-      '--btn-text': '#1c1410',
+      '--bg-primary': '#07050f',
+      '--bg-secondary': '#0e0a1c',
+      '--bg-tertiary': '#17122b',
+      '--border': '#2d2450',
+      '--text-primary': '#efeaff',
+      '--text-secondary': '#a39cc4',
+      '--accent': '#b48cff',
+      '--accent-hover': '#cdb2ff',
+      '--accent-text': '#0d0620',
+      '--btn-text': '#0d0620',
+      '--accent-2': '#00f0c8',
+      '--danger': '#ff5c7a',
+      '--accent-rgb': '180, 140, 255',
+      '--accent-2-rgb': '0, 240, 200',
     },
     light: {
-      '--bg-primary': '#fdf8f0',
+      '--bg-primary': '#f0eef8',
       '--bg-secondary': '#ffffff',
-      '--bg-tertiary': '#fef3c7',
-      '--border': '#e5d4b8',
-      '--text-primary': '#3d2b1a',
-      '--text-secondary': '#92674a',
-      '--accent': '#d97706',
-      '--accent-hover': '#b45309',
+      '--bg-tertiary': '#e8e4f5',
+      '--border': '#c6bfe0',
+      '--text-primary': '#120c26',
+      '--text-secondary': '#514a6e',
+      '--accent': '#5b2fc9',
+      '--accent-hover': '#4720a6',
       '--accent-text': '#ffffff',
       '--btn-text': '#ffffff',
+      '--accent-2': '#006b5a',
+      '--danger': '#b8123a',
+      '--accent-rgb': '91, 47, 201',
+      '--accent-2-rgb': '0, 107, 90',
     },
   },
-  ocean: {
-    label: 'Ocean',
-    emoji: '🌊',
+  ghost: {
+    label: 'Ghost',
+    swatch: '#e6edf5',
     dark: {
-      '--bg-primary': '#0a0f1e',
-      '--bg-secondary': '#0f172a',
-      '--bg-tertiary': '#1e293b',
-      '--border': '#1e3a5f',
-      '--text-primary': '#e0f2fe',
-      '--text-secondary': '#7dd3fc',
-      '--accent': '#38bdf8',
-      '--accent-hover': '#0ea5e9',
-      '--accent-text': '#0a0f1e',
-      '--btn-text': '#0a0f1e',
+      '--bg-primary': '#060708',
+      '--bg-secondary': '#0c0e11',
+      '--bg-tertiary': '#15181d',
+      '--border': '#2a2f37',
+      '--text-primary': '#edf1f6',
+      '--text-secondary': '#9aa3ae',
+      '--accent': '#e6edf5',
+      '--accent-hover': '#ffffff',
+      '--accent-text': '#060708',
+      '--btn-text': '#060708',
+      '--accent-2': '#00e5ff',
+      '--danger': '#ff5c7a',
+      '--accent-rgb': '230, 237, 245',
+      '--accent-2-rgb': '0, 229, 255',
     },
     light: {
-      '--bg-primary': '#f0f9ff',
+      '--bg-primary': '#eff1f4',
       '--bg-secondary': '#ffffff',
-      '--bg-tertiary': '#e0f2fe',
-      '--border': '#bae6fd',
-      '--text-primary': '#0c4a6e',
-      '--text-secondary': '#0369a1',
-      '--accent': '#0284c7',
-      '--accent-hover': '#0369a1',
+      '--bg-tertiary': '#e6e9ee',
+      '--border': '#c3c9d2',
+      '--text-primary': '#0b0d10',
+      '--text-secondary': '#4d5560',
+      '--accent': '#0b0d10',
+      '--accent-hover': '#2a2f37',
       '--accent-text': '#ffffff',
       '--btn-text': '#ffffff',
-    },
-  },
-  sunset: {
-    label: 'Sunset',
-    emoji: '🌅',
-    dark: {
-      '--bg-primary': '#0f0a1e',
-      '--bg-secondary': '#1a0f2e',
-      '--bg-tertiary': '#2d1b4e',
-      '--border': '#3d2060',
-      '--text-primary': '#fde8d8',
-      '--text-secondary': '#f0a070',
-      '--accent': '#f97316',
-      '--accent-hover': '#ea580c',
-      '--accent-text': '#0f0a1e',
-      '--btn-text': '#0f0a1e',
-    },
-    light: {
-      '--bg-primary': '#fff7ed',
-      '--bg-secondary': '#ffffff',
-      '--bg-tertiary': '#ffedd5',
-      '--border': '#fed7aa',
-      '--text-primary': '#431407',
-      '--text-secondary': '#9a3412',
-      '--accent': '#ea580c',
-      '--accent-hover': '#c2410c',
-      '--accent-text': '#ffffff',
-      '--btn-text': '#ffffff',
+      '--accent-2': '#00677c',
+      '--danger': '#b8123a',
+      '--accent-rgb': '11, 13, 16',
+      '--accent-2-rgb': '0, 103, 124',
     },
   },
 }
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [colorTheme, setColorThemeState] = useState<ColorTheme>(() => {
-    return (localStorage.getItem('colorTheme') as ColorTheme) || 'retro'
-  })
+// v2 keys: visitors who picked one of the old palettes start fresh on the new look.
+const THEME_KEY = 'hud.colorTheme'
+const MODE_KEY = 'hud.darkMode'
 
-  const [darkMode, setDarkMode] = useState<DarkMode>(() => {
-    const stored = localStorage.getItem('darkMode') as DarkMode
-    if (stored) return stored
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  })
+const readTheme = (): ColorTheme => {
+  const stored = localStorage.getItem(THEME_KEY) as ColorTheme | null
+  return stored && stored in themeConfig ? stored : DEFAULT_THEME
+}
+
+const readMode = (): DarkMode => {
+  const stored = localStorage.getItem(MODE_KEY)
+  // The HUD look is dark-first, so dark is the default whatever the OS says.
+  return stored === 'light' ? 'light' : 'dark'
+}
+
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const [colorTheme, setColorThemeState] = useState<ColorTheme>(readTheme)
+  const [darkMode, setDarkMode] = useState<DarkMode>(readMode)
 
   const theme = darkMode
-  const toggleTheme = () => setDarkMode(prev => prev === 'dark' ? 'light' : 'dark')
+  const toggleTheme = () => setDarkMode(prev => (prev === 'dark' ? 'light' : 'dark'))
 
   useEffect(() => {
     const config = themeConfig[colorTheme][darkMode]
@@ -191,18 +214,17 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       root.style.setProperty(key, value)
     })
 
-    if (darkMode === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
+    root.classList.toggle('dark', darkMode === 'dark')
+    root.dataset.theme = colorTheme
+    root.style.colorScheme = darkMode
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', config['--bg-primary'])
 
-    localStorage.setItem('colorTheme', colorTheme)
-    localStorage.setItem('darkMode', darkMode)
+    localStorage.setItem(THEME_KEY, colorTheme)
+    localStorage.setItem(MODE_KEY, darkMode)
   }, [colorTheme, darkMode])
 
-  const setColorTheme = (theme: ColorTheme) => setColorThemeState(theme)
-  const toggleDarkMode = () => setDarkMode(prev => prev === 'dark' ? 'light' : 'dark')
+  const setColorTheme = (next: ColorTheme) => setColorThemeState(next)
+  const toggleDarkMode = toggleTheme
 
   return (
     <ThemeContext.Provider value={{ colorTheme, darkMode, setColorTheme, toggleDarkMode, theme, toggleTheme }}>

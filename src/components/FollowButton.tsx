@@ -90,8 +90,8 @@ const FollowButton = ({ profileId }: FollowButtonProps) => {
       }}
       onMouseEnter={e => {
         if (following) {
-          e.currentTarget.style.borderColor = '#ef4444'
-          e.currentTarget.style.color = '#ef4444'
+          e.currentTarget.style.borderColor = 'var(--danger)'
+          e.currentTarget.style.color = 'var(--danger)'
         }
       }}
       onMouseLeave={e => {

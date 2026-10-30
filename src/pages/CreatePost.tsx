@@ -23,7 +23,7 @@ const CreatePost = () => {
 
   if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-500">Loading...</p>
+      <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>// loading...</p>
     </div>
   )
 
@@ -59,76 +59,107 @@ const CreatePost = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <Navbar />
-      <div className="max-w-4xl mx-auto p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">Create New Post</h1>
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
+        <div className="mb-8 pb-6 border-b" style={{ borderColor: 'var(--border)' }}>
+          <div className="text-xs font-mono tracking-widest mb-1" style={{ color: 'var(--accent)' }}>
+            // new transmission
+          </div>
+          <h1 className="text-2xl font-bold font-mono" style={{ color: 'var(--text-primary)' }}>
+            post.create()
+          </h1>
+        </div>
 
         {error && (
-          <div className="bg-red-100 text-red-600 p-3 rounded-lg mb-4">
-            {error}
+          <div className="border border-red-400 bg-red-500 bg-opacity-10 text-red-400 p-3 rounded mb-4 text-xs font-mono" role="alert">
+            <span className="font-bold">ERROR:</span> {error}
           </div>
         )}
 
-        {/* Cover Image */}
-        {isDemo ? (
-          <p className="text-xs font-mono mb-4 text-gray-500">
-            // demo mode: cover image uploads are turned off for guests (up to 3 posts per guest)
-          </p>
-        ) : (
-          <CoverImageUpload
-            currentImage={coverImage}
-            onUpload={(url) => setCoverImage(url)}
-            onRemove={() => setCoverImage('')}
-          />
-        )}
+        <div
+          className="hud-panel border p-4 sm:p-6 space-y-6"
+          style={{
+            backgroundColor: 'var(--bg-secondary)',
+            borderColor: 'var(--border)',
+          }}
+        >
+          {/* Cover Image */}
+          {isDemo ? (
+            <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
+              // demo mode: cover image uploads are turned off for guests (up to 3 posts per guest)
+            </p>
+          ) : (
+            <CoverImageUpload
+              currentImage={coverImage}
+              onUpload={(url) => setCoverImage(url)}
+              onRemove={() => setCoverImage('')}
+            />
+          )}
 
-        <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <label htmlFor="post-title" className="block text-xs font-mono mb-2 tracking-widest" style={{ color: 'var(--accent)' }}>
+              $ TITLE
+            </label>
             <input
+              id="post-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded px-3 py-2 text-sm font-mono border focus:outline-none transition-colors"
+              style={{
+                backgroundColor: 'var(--bg-tertiary)',
+                borderColor: 'var(--border)',
+                color: 'var(--text-primary)',
+              }}
               placeholder="Enter your post title..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tags <span className="text-gray-400">(comma separated)</span>
+            <label htmlFor="post-tags" className="block text-xs font-mono mb-2 tracking-widest" style={{ color: 'var(--accent)' }}>
+              $ TAGS <span style={{ color: 'var(--text-secondary)' }}>(comma separated)</span>
             </label>
             <input
+              id="post-tags"
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded px-3 py-2 text-sm font-mono border focus:outline-none transition-colors"
+              style={{
+                backgroundColor: 'var(--bg-tertiary)',
+                borderColor: 'var(--border)',
+                color: 'var(--text-primary)',
+              }}
               placeholder="react, typescript, webdev..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+            <label className="block text-xs font-mono mb-2 tracking-widest" style={{ color: 'var(--accent)' }}>
+              $ CONTENT
+            </label>
             <RichTextEditor content={content} onChange={setContent} />
           </div>
 
-          <div className="flex gap-4 justify-end">
+          <div className="flex gap-3 justify-end flex-wrap">
             <button
               onClick={() => handleSubmit(false)}
               disabled={loading}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 rounded font-mono text-xs border transition-all disabled:opacity-50"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
             >
-              Save Draft
+              save_draft()
             </button>
             <button
               onClick={() => handleSubmit(true)}
               disabled={loading}
               aria-busy={loading}
-              className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded font-mono text-xs font-bold transition-all disabled:opacity-50"
+              style={{ backgroundColor: 'var(--accent)', color: 'var(--btn-text)' }}
             >
               {loading && <Spinner label="Saving post" />}
-              {loading ? 'Saving...' : 'Publish'}
+              {loading ? 'saving...' : '> publish()'}
             </button>
           </div>
         </div>

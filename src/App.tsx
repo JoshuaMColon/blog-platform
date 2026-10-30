@@ -33,6 +33,11 @@ function App() {
           style: {
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: '12px',
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border)',
+            borderLeft: '3px solid var(--accent)',
+            borderRadius: '2px',
           },
         }}
       />

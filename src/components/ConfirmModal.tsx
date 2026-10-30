@@ -1,4 +1,5 @@
 import Spinner from './Spinner'
+import HudMark from './HudMark'
 
 interface ConfirmModalProps {
   isOpen: boolean
@@ -32,7 +33,7 @@ const ConfirmModal = ({
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-lg border p-6 shadow-2xl"
+        className="w-full max-w-sm hud-panel border p-6"
         style={{
           backgroundColor: 'var(--bg-secondary)',
           borderColor: 'var(--border)',
@@ -41,9 +42,7 @@ const ConfirmModal = ({
       >
         {/* Terminal Bar */}
         <div className="flex items-center gap-1.5 mb-4 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
-          <div className="w-3 h-3 rounded-full bg-red-500" />
-          <div className="w-3 h-3 rounded-full bg-yellow-500" />
-          <div className="w-3 h-3 rounded-full bg-green-500" />
+          <HudMark size="lg" />
           <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-primary)' }}>
             confirm.sh
           </span>
@@ -76,7 +75,7 @@ const ConfirmModal = ({
             aria-busy={loading}
             className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded font-mono text-xs font-bold transition-all disabled:opacity-70"
             style={{
-              backgroundColor: danger ? '#ef4444' : 'var(--accent)',
+              backgroundColor: danger ? 'var(--danger)' : 'var(--accent)',
               color: danger ? '#ffffff' : 'var(--btn-text)',
             }}
           >

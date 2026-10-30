@@ -1,4 +1,5 @@
 import Navbar from './Navbar'
+import HudMark from './HudMark'
 
 const SkeletonPost = () => {
   return (
@@ -6,7 +7,7 @@ const SkeletonPost = () => {
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
         <div
-          className="rounded-lg border p-6 sm:p-8 animate-pulse"
+          className="hud-panel border p-6 sm:p-8 animate-pulse"
           style={{
             backgroundColor: 'var(--bg-secondary)',
             borderColor: 'var(--border)',
@@ -14,9 +15,7 @@ const SkeletonPost = () => {
         >
           {/* Terminal bar */}
           <div className="flex items-center gap-1.5 mb-6 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-            <div className="w-3 h-3 rounded-full bg-red-500 opacity-30" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500 opacity-30" />
-            <div className="w-3 h-3 rounded-full bg-green-500 opacity-30" />
+            <HudMark size="lg" dim />
             <div className="h-3 rounded w-32 ml-2" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
           </div>
 
