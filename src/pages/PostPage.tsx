@@ -147,7 +147,7 @@ const PostPage = () => {
             <motion.img
               src={post.cover_image}
               alt={post.title}
-              className="w-full h-64 object-cover rounded-lg mb-6"
+              className="hud-cover h-56 sm:h-72 mb-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
