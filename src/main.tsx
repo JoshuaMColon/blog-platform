@@ -4,8 +4,10 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { installPressFeedback } from './utils/pressFeedback'
+import { installTooltips } from './utils/tooltip'
 
 installPressFeedback()
+installTooltips()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -101,7 +101,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
             <button
               key={tool.label}
               type="button"
-              title={tool.title}
+              data-tip={tool.title}
               aria-label={tool.title}
               aria-pressed={tool.active(editor)}
               onClick={() => tool.run(editor)}
@@ -114,7 +114,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         <span className="hud-editor-sep" aria-hidden="true" />
         <button
           type="button"
-          title="Insert image"
+          data-tip="Insert image"
           aria-label="Insert image"
           className="hud-editor-btn"
           disabled={!user || uploading}

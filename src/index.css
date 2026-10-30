@@ -872,3 +872,33 @@ html.dark .hud-nav {
   .hud-tldr-led[data-pending='true'], .hud-ellipsis::after { animation: none; }
   .hud-panel.hud-related-card:is(:active, [data-pressed]) { transform: none; }
 }
+
+/* ---------------------------------------------------------------- tooltips (src/utils/tooltip.ts) */
+/* Neon HUD readout: clipped corner, accent edge + glow, mono caps. */
+.app-tooltip {
+  position: fixed;
+  z-index: 2147483000;
+  max-width: min(18rem, calc(100vw - 16px));
+  pointer-events: none;
+  padding: 5px 10px 5px 9px;
+  border: 1px solid rgba(var(--accent-rgb), 0.7);
+  border-left: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--bg-secondary) 94%, transparent);
+  color: var(--accent);
+  font: 600 10.5px/1.35 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.55);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.08), 0 0 16px rgba(var(--accent-rgb), 0.35);
+  clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 0 100%);
+  opacity: 0;
+  transform: translateY(var(--tip-shift, -3px));
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
+}
+.app-tooltip::before { content: '> '; opacity: 0.6; }
+.app-tooltip[data-side='top'] { --tip-shift: 3px; }
+.app-tooltip[data-state='open'] { opacity: 1; transform: none; }
+.app-tooltip[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .app-tooltip { transition: none; transform: none; }
+}
