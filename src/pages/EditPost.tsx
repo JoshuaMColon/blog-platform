@@ -28,7 +28,7 @@ const EditPost = () => {
     const fetchPost = async () => {
       const { data, error } = await supabase
         .from("posts")
-        .select("*")
+        .select("id, user_id, title, content, tags, cover_image")
         .eq('slug', currentSlug)
         .single();
 

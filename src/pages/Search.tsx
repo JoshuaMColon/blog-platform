@@ -1,6 +1,6 @@
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import LikeButton from '../components/LikeButton'
 import Navbar from '../components/Navbar'
 import SkeletonCard from '../components/SkeletonCard'
@@ -9,6 +9,9 @@ import { supabase } from '../lib/supabase'
 import { formatReadingTime, POST_CARD_COLUMNS } from '../utils/readingTime'
 import { motion } from 'framer-motion'
 import HudMark from '../components/HudMark'
+import Highlight, { stripMarks } from '../components/Highlight'
+
+const PAGE_SIZE = 20
 
 interface Post {
   id: string
@@ -19,17 +22,29 @@ interface Post {
   tags: string[]
   created_at: string
   user_id: string
-  profiles: { username: string }
+  cover_image: string | null
+  username: string | null
+  rank?: number
+  title_highlight?: string
+  snippet?: string
+}
+
+interface SearchRow extends Post {
+  total_count: number
 }
 
 const Search = () => {
   useDocumentTitle('Search')
-  const [query, setQuery] = useState('')
+  const [params, setParams] = useSearchParams()
+  const [query, setQuery] = useState(() => params.get('q') ?? '')
   const [results, setResults] = useState<Post[]>([])
+  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [searched, setSearched] = useState(false)
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [popularTags, setPopularTags] = useState<string[]>([])
+  const requestId = useRef(0)
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -55,37 +70,30 @@ const Search = () => {
     fetchTags()
   }, [])
 
-  const handleSearch = async (searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setResults([])
-      setSearched(false)
-      return
-    }
-
-    // Strip characters that have meaning inside a PostgREST or() filter.
-    const term = searchQuery.trim().replace(/[,()*%\\]/g, ' ').replace(/\s+/g, ' ')
-    if (!term) {
-      setResults([])
-      setSearched(true)
-      return
-    }
-
-    setLoading(true)
+  // Ranked full-text search (title > tags > content) via the search_posts RPC.
+  const runSearch = useCallback(async (searchQuery: string, offset = 0) => {
+    const id = ++requestId.current
+    if (offset === 0) setLoading(true)
+    else setLoadingMore(true)
     setSearched(true)
     setActiveTag(null)
 
-    const { data, error } = await supabase
-      .from('posts')
-      .select(`${POST_CARD_COLUMNS}, profiles(username)`)
-      .eq('published', true)
-      .or(`title.ilike.%${term}%,content.ilike.%${term}%`)
-      .order('created_at', { ascending: false })
+    const { data, error } = await supabase.rpc('search_posts', {
+      q: searchQuery,
+      page_size: PAGE_SIZE,
+      page_offset: offset,
+    })
+    if (id !== requestId.current) return
 
-    if (!error && data) setResults(data as unknown as Post[])
+    const rows = (error ? [] : (data as SearchRow[] | null) ?? [])
+    setResults(prev => (offset === 0 ? rows : [...prev, ...rows]))
+    if (offset === 0) setTotal(rows[0]?.total_count ?? 0)
     setLoading(false)
-  }
+    setLoadingMore(false)
+  }, [])
 
   const handleTagSearch = async (tag: string) => {
+    const id = ++requestId.current
     setActiveTag(tag)
     setQuery('')
     setLoading(true)
@@ -97,19 +105,36 @@ const Search = () => {
       .eq('published', true)
       .contains('tags', [tag])
       .order('created_at', { ascending: false })
+    if (id !== requestId.current) return
 
-    if (!error && data) setResults(data as unknown as Post[])
+    const rows = !error && data
+      ? (data as unknown as (Post & { profiles: { username: string } | null })[]).map(p => ({
+          ...p,
+          username: p.profiles?.username ?? null,
+        }))
+      : []
+    setResults(rows)
+    setTotal(rows.length)
     setLoading(false)
   }
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (query.trim()) handleSearch(query)
-      else { setResults([]); setSearched(false) }
-    }, 300)
+      const q = query.trim()
+      setParams(q ? { q } : {}, { replace: true })
+      if (q) runSearch(q)
+      else if (!activeTag) {
+        requestId.current++
+        setResults([])
+        setTotal(0)
+        setSearched(false)
+      }
+    }, 250)
 
     return () => clearTimeout(timer)
-  }, [query])
+    // activeTag is read only to avoid clearing tag results; it must not retrigger a search
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, runSearch, setParams])
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -155,12 +180,14 @@ const Search = () => {
               borderColor: 'var(--border)',
               color: 'var(--text-primary)',
             }}
-            placeholder="search by title, content, or author..."
+            placeholder='search titles, tags and content… try "row level" or -react'
+            aria-label="Search posts"
+            data-testid="search-input"
             autoFocus
           />
           {query && (
             <button
-              onClick={() => { setQuery(''); setResults([]); setSearched(false) }}
+              onClick={() => { requestId.current++; setQuery(''); setActiveTag(null); setResults([]); setTotal(0); setSearched(false) }}
               className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-xs transition-colors"
               style={{ color: 'var(--text-secondary)' }}
             >
@@ -222,13 +249,15 @@ const Search = () => {
         ) : results.length > 0 ? (
           <div>
             <p className="text-xs font-mono mb-4" style={{ color: 'var(--text-secondary)' }}>
-              // {results.length} result{results.length !== 1 ? 's' : ''} found
+              // {total} result{total !== 1 ? 's' : ''} found
+              {!activeTag && ' · ranked by relevance'}
             </p>
             <div className="space-y-4">
               <AnimatedList>
                 {results.map(post => (
                   <div
                     key={post.id}
+                    data-testid="search-result"
                     className="hud-panel border p-4 sm:p-6 transition-all group"
                     style={{
                       backgroundColor: 'var(--bg-secondary)',
@@ -247,11 +276,25 @@ const Search = () => {
                       </span>
                     </div>
 
+                    {post.cover_image && (
+                      <Link to={`/post/${post.slug}`} tabIndex={-1} aria-hidden="true">
+                        <img
+                          src={post.cover_image}
+                          alt=""
+                          className="hud-cover h-36 mb-4"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </Link>
+                    )}
+
                     <h3
                       className="font-bold font-mono text-base sm:text-lg mb-1 transition-colors"
                       style={{ color: 'var(--text-primary)' }}
                     >
-                      {post.title}
+                      <Link to={`/post/${post.slug}`} className="hover:underline">
+                        {post.title_highlight ? <Highlight text={post.title_highlight} /> : post.title}
+                      </Link>
                     </h3>
 
                     <p className="text-xs font-mono mb-3" style={{ color: 'var(--text-secondary)' }}>
@@ -261,7 +304,7 @@ const Search = () => {
                         className="hover:underline"
                         style={{ color: 'var(--accent)' }}
                       >
-                        {post.profiles?.username}
+                        {post.username}
                       </Link>
                     </p>
 
@@ -285,10 +328,13 @@ const Search = () => {
                     )}
 
                     <p
-                      className="text-sm font-mono line-clamp-2 mb-4"
+                      className="text-sm font-mono line-clamp-3 mb-4"
                       style={{ color: 'var(--text-secondary)' }}
+                      data-testid="search-snippet"
                     >
-                      {post.excerpt}
+                      {post.snippet && stripMarks(post.snippet).trim()
+                        ? <Highlight text={post.snippet} />
+                        : post.excerpt}
                     </p>
 
                     <div className="flex items-center justify-between flex-wrap gap-2">
@@ -305,6 +351,18 @@ const Search = () => {
                 ))}
               </AnimatedList>
             </div>
+            {!activeTag && results.length < total && (
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  className="hud-chip"
+                  disabled={loadingMore}
+                  onClick={() => runSearch(query.trim(), results.length)}
+                >
+                  {loadingMore ? 'loading…' : `load_more() · ${total - results.length} left`}
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <motion.div
@@ -315,7 +373,7 @@ const Search = () => {
           >
             <p className="font-mono text-4xl mb-4">🔍</p>
             <p className="font-mono text-sm" style={{ color: 'var(--text-secondary)' }}>
-              // search by title, content, or click a tag above
+              // full-text search with ranking · or click a tag above
             </p>
           </motion.div>
         )}

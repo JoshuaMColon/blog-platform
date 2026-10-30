@@ -18,7 +18,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 - **Social**: comments (edit and delete your own), likes, follows, bookmarks and a following feed
 - **Notifications**: get notified when someone follows you, likes your post or comments on it. A navbar bell shows a live unread badge (private Realtime channel), with a dropdown, a full `/notifications` page and mark-as-read
 - **Live updates**: comments and like counts update in real time, the feed shows an "N new posts" pill, and post pages show how many people are reading right now (Supabase Realtime broadcast + presence)
-- **Discovery**: search by title or content, and filter by tag
+- **Discovery**: ranked Postgres full-text search over titles, tags and content (prefix matching as you type, `"phrases"` and `-exclusions`, highlighted snippets, covers on results), plus tag filters
 - **Themes**: five colour themes with a light/dark toggle
 - **Feel**: subtle press feedback on every control (mouse and touch), spinners on async actions, and optimistic likes that roll back if the write fails
 - **SEO**: per-page titles, meta description, Open Graph/Twitter cards, `robots.txt` and a generated `sitemap.xml`
@@ -232,6 +232,30 @@ sequenceDiagram
 
 ---
 
+## Full-text search
+
+`posts.search_tsv` is a **stored generated** `tsvector` (title weight **A**, tags **B**, content **C** with HTML stripped by `private.post_plaintext`) with a **GIN** index, so it can never drift from the post and needs no trigger.
+
+`public.search_posts(q, page_size, page_offset)` is a `security invoker` RPC (RLS still applies, and it only returns published posts):
+
+- **Query parsing:** plain input matches every word as a prefix (`row lev` finds "Row Level Security"); input with quotes, `-word` or `or` uses `websearch_to_tsquery`. Stop-word-only or junk input returns nothing instead of erroring.
+- **Ranking:** `ts_rank_cd` (normalised by length), newest first on ties. `page_size` is clamped to 1–50 and a `total_count` comes back for "load more".
+- **Highlights:** `ts_headline` for the title and a two-fragment content snippet. Matches are wrapped in the private-use characters U+E000/U+E001 instead of HTML, and `Highlight.tsx` turns them into `<mark>` elements, so no server HTML is ever injected.
+
+```mermaid
+flowchart LR
+    I["/search?q=row lev"] -->|debounced 250 ms| R["rpc search_posts(q)"]
+    R --> Q{"quotes / -word / or?"}
+    Q -->|yes| W[websearch_to_tsquery]
+    Q -->|no| P["to_tsquery('row:* & lev:*')"]
+    W --> G[("GIN posts_search_tsv_idx")]
+    P --> G
+    G --> K["ts_rank_cd + ts_headline<br/>(published only, RLS)"]
+    K --> C["cards: cover, highlighted title + snippet"]
+```
+
+---
+
 ## Image uploads (Storage)
 
 | Bucket | Used for | Max longest edge | Limits (enforced by Storage) |
@@ -281,7 +305,7 @@ _30 Oct 2026. "Before" is a single run; "after" is the median of three runs afte
 - **Guest demo** needs **Allow anonymous sign-ins** turned on in Supabase, and ideally CAPTCHA to slow down bots.
 - **Leaked-password protection** (Supabase Auth → Attack Protection) is off.
 - **The base schema** isn't checked in as a migration (see step 4).
-- **Search** is a simple `ilike` match, not full-text search.
+- **Search** uses the English dictionary only (stemming and stop words), so posts in other languages match less well.
 - **The main JS bundle** is still about 190 KB gzipped (Supabase client, framer-motion, router); the editor and authoring pages are split out.
 
 ---
