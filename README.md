@@ -2,9 +2,15 @@
 
 [![CI](https://github.com/JoshuaMColon/blog-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JoshuaMColon/blog-platform/actions/workflows/ci.yml)
 
-A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supabase. It covers sign-up and login, a TipTap rich-text editor, comments, likes, follows, bookmarks, tag search and a one-click guest demo, with Postgres row-level security (RLS) doing the access control.
+A full-stack blogging app with a cybernetic HUD look, built with React 19, TypeScript, Tailwind CSS and Supabase. It covers sign-up and login, a TipTap rich-text editor, image uploads, comments, likes, follows, bookmarks, live updates, notifications, ranked full-text search, AI summaries and related posts, and a one-click guest demo, with Postgres row-level security (RLS) doing the access control.
 
-**Live:** https://blog-platform-one-xi.vercel.app
+**Live:** https://blog-platform-one-xi.vercel.app · **Try it signed in, no sign-up needed:** [/demo](https://blog-platform-one-xi.vercel.app/demo)
+
+<p>
+  <img src="docs/screenshots/home-desktop.png" alt="The feed on desktop in the Neon Grid theme" width="620">
+  <img src="docs/screenshots/home-mobile.png" alt="The feed on a phone" width="180">
+</p>
+<img src="docs/screenshots/post-desktop.png" alt="A post page on desktop" width="820">
 
 > A portfolio project. It's a working app with real auth and data, not a hardened production service; see [Known limits](#known-limits).
 
@@ -20,7 +26,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 - **Live updates**: comments and like counts update in real time, the feed shows an "N new posts" pill, and post pages show how many people are reading right now (Supabase Realtime broadcast + presence)
 - **Discovery**: ranked Postgres full-text search over titles, tags and content (prefix matching as you type, `"phrases"` and `-exclusions`, highlighted snippets, covers on results), plus tag filters
 - **AI**: a **TL;DR** panel on every post and **Related posts** found by meaning (pgvector + the built-in `gte-small` embedding model). Both are computed by Edge Functions on publish/update; summaries use an LLM when `OPENAI_API_KEY` is set and a local extractive summarizer otherwise
-- **Themes**: five colour themes with a light/dark toggle
+- **Cyber HUD design**: a dark grid-and-scanline backdrop, clipped-corner glowing panels, a restrained glitch on the logo and hero, Orbitron / JetBrains Mono / Inter type, and a calm solid reading surface for post text. Four palettes (**Neon Grid** by default, **Acid**, **Ultraviolet**, **Ghost**), each with a dark and a light variant whose text/accent pairs are checked against WCAG AA. On phones the navbar collapses into a menu (Escape closes it), and `prefers-reduced-motion` turns off glitch, flicker, pulse and scale effects
 - **Feel**: subtle press feedback on every control (mouse and touch), spinners on async actions, and optimistic likes that roll back if the write fails
 - **SEO**: per-page titles, meta description, Open Graph/Twitter cards, `robots.txt` and a generated `sitemap.xml`
 
@@ -31,9 +37,9 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 | Layer      | Technology                                     |
 | ---------- | ---------------------------------------------- |
 | Frontend   | React 19 + TypeScript, Vite, React Router 7    |
-| Styling    | Tailwind CSS, framer-motion                    |
+| Styling    | Tailwind CSS, framer-motion, Orbitron / JetBrains Mono / Inter |
 | Editor     | TipTap (lazy-loaded on the create/edit routes) |
-| Backend    | Supabase (Auth, Postgres + RLS, Realtime, Storage, Cron) |
+| Backend    | Supabase (Auth, Postgres + RLS, Realtime, Storage, Cron, Edge Functions, pgvector) |
 | Testing/CI | GitHub Actions, ESLint, TypeScript, Playwright |
 | Deployment | Vercel (SPA rewrite in `vercel.json`)          |
 
@@ -43,7 +49,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.19+ (CI uses 22)
 - Supabase account
 
 ### Installation
@@ -92,6 +98,8 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 
    Set `BASE_URL=https://your-preview.vercel.app` to run the same tests against a deployed preview.
 
+   The Playwright suite (`e2e/`) covers routing and 404s, SEO files, press feedback, the guest demo and `/demo` link, live "reading now" presence, image upload RLS and compression, notifications access, search ranking and highlighting, and the AI tables, RPCs and worker auth. Tests that need a guest session skip cleanly while anonymous sign-ins are off. GitHub Actions (`.github/workflows/ci.yml`) runs typecheck, lint, build and the full suite on every push and pull request.
+
 ---
 
 ## Usage
@@ -111,7 +119,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 - Leave comments on posts, and edit or delete your own
 - Like or unlike posts, follow authors and bookmark posts
 - Get follow / like / comment notifications in the navbar bell and on `/notifications`
-- Pick one of five themes and toggle light/dark
+- Pick one of four themes and toggle light/dark
 
 ---
 
@@ -339,15 +347,14 @@ Lighthouse (lab run, mobile uses the default Moto G Power throttling, desktop th
 | Post | Mobile  | 80 → 84                      | 85 → 90       | 100 → 100      | 82 → 100   |
 | Post | Desktop | 99 → 90                      | 85 → 90       | 100 → 100      | 82 → 100   |
 
-_30 Oct 2026. "Before" is a single run; "after" is the median of three runs after the perf/SEO pass. Lab performance scores on this setup swing by 10+ points between runs (for example, post desktop scored 89, 99 and 90), so treat performance differences of that size as noise. The accessibility, SEO and best-practices changes are stable. The remaining accessibility misses are colour contrast and links distinguished only by colour, both theme decisions that were left as is on purpose._
+_30 Oct 2026, measured before the cyber HUD redesign (PR #7). "Before" is a single run; "after" is the median of three runs after the perf/SEO pass. Lab performance scores on this setup swing by 10+ points between runs (for example, post desktop scored 89, 99 and 90), so treat performance differences of that size as noise. The accessibility, SEO and best-practices changes are stable. At the time, the remaining accessibility misses were colour contrast and links distinguished only by colour; the redesign reworked both (AA-checked palettes, underlined links in running text)._
 
 ---
 
 ## Known limits
 
-- **Contrast:** some theme accent colours fail WCAG AA contrast on light backgrounds, which is most of the Accessibility deduction. The themes haven't been changed.
 - **Guest demo** needs **Allow anonymous sign-ins** turned on in Supabase, and ideally CAPTCHA to slow down bots.
-- **Leaked-password protection** (Supabase Auth → Attack Protection) is off.
+- **Leaked-password protection** (Supabase Auth → Attack Protection) is off, because it needs a paid Supabase plan.
 - **The base schema** isn't checked in as a migration (see step 4).
 - **Search** uses the English dictionary only (stemming and stop words), so posts in other languages match less well.
 - **AI** embeddings are English-first and see only the first ~512 tokens of a post. Extractive summaries pick existing sentences, so very short posts get their whole text as the TL;DR.
