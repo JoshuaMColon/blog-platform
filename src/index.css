@@ -838,3 +838,13 @@ html.dark .hud-nav {
 }
 .hud-chip:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 .hud-chip:disabled:hover { color: var(--text-secondary); border-color: var(--border); }
+
+/* Full-text search highlights */
+@layer components {
+  .hud-mark {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--text-primary);
+    box-shadow: inset 0 -1px 0 var(--accent);
+    padding: 0 1px;
+  }
+}

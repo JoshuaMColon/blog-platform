@@ -48,11 +48,11 @@ const PostPage = () => {
     const fetchPost = async () => {
       const { data, error } = await supabase
         .from('posts')
-        .select('*, profiles(username)')
+        .select('id, slug, title, content, tags, created_at, user_id, cover_image, excerpt, profiles(username)')
         .eq('slug', slug)
         .single()
 
-      if (!error && data) setPost(data)
+      if (!error && data) setPost(data as unknown as Post)
       setLoading(false)
     }
     fetchPost()
