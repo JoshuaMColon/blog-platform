@@ -1,124 +1,150 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import ThemeSelector from './ThemeSelector'
 
+const NAV_LINKS = [
+  { to: '/', label: 'feed', end: true },
+  { to: '/following', label: 'following' },
+  { to: '/bookmarks', label: 'bookmarks' },
+  { to: '/search', label: 'search' },
+  { to: '/my-posts', label: 'my_posts' },
+]
+
+export const Logo = () => (
+  <Link to="/" className="hud-logo" aria-label="BlogPlatform home">
+    <span aria-hidden="true" className="hud-logo-mark" />
+    <span className="glitch" data-text="BLOG//PLATFORM">
+      <span className="hud-logo-accent">BLOG</span>
+      <span className="hud-logo-sep">//</span>
+      PLATFORM
+    </span>
+  </Link>
+)
+
 const Navbar = () => {
   const { user, isDemo, signOut } = useAuth()
+  const { pathname } = useLocation()
+  // The menu remembers the route it was opened on, so navigating closes it.
+  const [menuPath, setMenuPath] = useState<string | null>(null)
+  const menuOpen = menuPath === pathname
+  const setMenuOpen = (open: boolean) => setMenuPath(open ? pathname : null)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuPath(null)
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
+  const userLabel = isDemo ? 'guest' : user?.email ?? ''
 
   return (
-    <nav
-      className="px-4 sm:px-8 py-4 sticky top-0 z-50 border-b"
-      style={{
-        backgroundColor: 'var(--bg-secondary)',
-        borderColor: 'var(--border)',
-      }}
-    >
-      <div className="max-w-4xl mx-auto flex justify-between items-center gap-4">
-        <Link
-          to="/"
-          className="font-mono font-bold text-sm sm:text-base transition-colors flex-shrink-0"
-          style={{ color: 'var(--text-primary)' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-        >
-          &lt;<span style={{ color: 'var(--accent)' }}>Blog</span>Platform /&gt;
-        </Link>
+    <nav className="hud-nav" aria-label="Main">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+        <Logo />
+
         {isDemo && (
           <span
-            className="text-[10px] font-mono font-bold tracking-widest px-2 py-0.5 rounded border flex-shrink-0"
-            style={{ borderColor: 'var(--accent)', color: 'var(--accent)', backgroundColor: 'var(--bg-tertiary)' }}
+            className="hud-badge flex-shrink-0"
             title="You're exploring as a guest. Guest posts and comments are removed after a day."
           >
             DEMO
           </span>
         )}
 
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
-          <ThemeSelector />
+        {/* Desktop links */}
+        {user && (
+          <ul className="hidden md:flex items-center gap-1 ml-4">
+            {NAV_LINKS.map(link => (
+              <li key={link.to}>
+                <NavLink to={link.to} end={link.end} className="hud-navlink">
+                  {link.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
+          <span className="hud-status hidden xl:inline-flex" aria-hidden="true">
+            <span className="hud-status-dot" /> {user ? 'LINK·OK' : 'OFFLINE'}
+          </span>
+
+          <div className={user ? 'hidden md:block' : ''}>
+            <ThemeSelector />
+          </div>
 
           {user ? (
             <>
-            <Link
-                to="/following"
-                className="text-xs font-mono transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
-              >
-                following()
-              </Link>
-            <Link
-                to="/bookmarks"
-                className="text-xs font-mono transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
-              >
-                bookmarks()
-              </Link>
-            <Link
-                to="/search"
-                className="text-xs font-mono transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
-              >
-                search()
-              </Link>
-            <Link
-                to="/my-posts"
-                className="text-xs font-mono transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
-              >
-                my_posts()
-              </Link>
-              <Link
-                to="/create"
-                className="px-3 sm:px-4 py-1.5 rounded font-mono text-xs sm:text-sm font-bold transition-all tracking-wide"
-                style={{
-                  backgroundColor: 'var(--accent)',
-                  color: 'var(--btn-text)',
-                }}
-              >
-                + new_post()
+              <Link to="/create" className="hud-btn hud-btn-primary">
+                <span aria-hidden="true">+</span>
+                <span className="hidden sm:inline">new_post</span>
+                <span className="sm:hidden">new</span>
               </Link>
               <Link
                 to={`/profile/${user.id}`}
-                className="text-xs font-mono hidden md:block truncate max-w-32 transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                className="hud-navlink hidden lg:block truncate max-w-40"
+                title={userLabel}
               >
-                {isDemo ? 'guest' : user.email}
+                {userLabel}
               </Link>
+              <button type="button" onClick={signOut} className="hud-navlink hud-navlink-danger hidden md:block">
+                {isDemo ? 'exit_demo' : 'logout'}
+              </button>
               <button
-                onClick={signOut}
-                className="text-xs font-mono transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                type="button"
+                className="hud-chip md:hidden"
+                aria-expanded={menuOpen}
+                aria-controls="mobile-menu"
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                onClick={() => setMenuOpen(!menuOpen)}
               >
-                {isDemo ? 'exit_demo()' : 'logout()'}
+                <span aria-hidden="true" className="hud-burger" data-open={menuOpen || undefined}>
+                  <span /><span /><span />
+                </span>
               </button>
             </>
           ) : (
-            <Link
-              to="/login"
-              className="px-4 py-1.5 rounded font-mono text-sm font-bold transition-all"
-              style={{
-                backgroundColor: 'var(--accent)',
-                color: 'var(--btn-text)',
-              }}
-            >
-              sign_in()
+            <Link to="/login" className="hud-btn hud-btn-primary">
+              sign_in
             </Link>
           )}
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {user && menuOpen && (
+        <div id="mobile-menu" className="md:hidden hud-mobile-menu">
+          <ul className="grid grid-cols-2 gap-2">
+            {NAV_LINKS.map(link => (
+              <li key={link.to}>
+                <NavLink to={link.to} end={link.end} className="hud-navlink hud-navlink-block">
+                  {link.label}
+                </NavLink>
+              </li>
+            ))}
+            <li>
+              <NavLink to={`/profile/${user.id}`} className="hud-navlink hud-navlink-block">
+                profile
+              </NavLink>
+            </li>
+          </ul>
+          <div className="flex items-center justify-between gap-3 mt-3 pt-3 hud-divider">
+            <span className="text-[11px] font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
+              {userLabel}
+            </span>
+            <div className="flex items-center gap-2">
+              <ThemeSelector compact />
+              <button type="button" onClick={signOut} className="hud-navlink hud-navlink-danger">
+                {isDemo ? 'exit_demo' : 'logout'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isDemo && (
-        <div className="max-w-4xl mx-auto mt-3 text-[11px] font-mono" style={{ color: 'var(--text-secondary)' }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-2 text-[11px] font-mono" style={{ color: 'var(--text-secondary)' }}>
           // demo mode: you're a guest. Post, like and comment freely (within small limits); your content clears after a day.
         </div>
       )}

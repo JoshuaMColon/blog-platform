@@ -122,7 +122,7 @@ const EditPost = () => {
         )}
 
         <div
-          className="rounded-lg border p-6 space-y-6"
+          className="hud-panel border p-6 space-y-6"
           style={{
             backgroundColor: 'var(--bg-secondary)',
             borderColor: 'var(--border)',

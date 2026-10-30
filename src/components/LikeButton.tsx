@@ -64,9 +64,10 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
       title={user ? undefined : 'Sign in to like posts'}
       className="relative flex items-center gap-2 px-3 py-1 rounded border font-mono text-xs disabled:opacity-40"
       style={{
-        borderColor: liked ? '#ef4444' : 'var(--border)',
-        color: liked ? '#ef4444' : 'var(--text-secondary)',
-        backgroundColor: liked ? 'rgba(239,68,68,0.1)' : 'transparent',
+        borderColor: liked ? 'var(--accent-2)' : 'var(--border)',
+        color: liked ? 'var(--accent-2)' : 'var(--text-secondary)',
+        backgroundColor: liked ? 'rgba(var(--accent-2-rgb), 0.12)' : 'transparent',
+        boxShadow: liked ? '0 0 12px rgba(var(--accent-2-rgb), 0.35)' : undefined,
       }}
     >
       <span className="relative inline-flex w-3 justify-center" aria-hidden="true">
@@ -84,7 +85,7 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
             <motion.span
               key={`ring-${burst}`}
               className="absolute inset-0 rounded-full"
-              style={{ boxShadow: '0 0 0 2px rgba(239,68,68,0.5)' }}
+              style={{ boxShadow: '0 0 0 2px rgba(var(--accent-2-rgb), 0.6)' }}
               initial={{ scale: 0.6, opacity: 0.9 }}
               animate={{ scale: 2.2, opacity: 0 }}
               exit={{ opacity: 0 }}

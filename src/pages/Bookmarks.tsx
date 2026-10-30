@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar'
 import LikeButton from '../components/LikeButton'
 import BookmarkButton from '../components/BookmarkButton'
 import { formatReadingTime, POST_CARD_COLUMNS } from '../utils/readingTime'
+import HudMark from '../components/HudMark'
 
 interface Bookmark {
   id: string
@@ -80,7 +81,7 @@ const Bookmarks = () => {
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="rounded-lg border p-6 animate-pulse"
+                className="hud-panel border p-6 animate-pulse"
                 style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
               >
                 <div className="h-4 rounded mb-4 w-1/4" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
@@ -90,7 +91,7 @@ const Bookmarks = () => {
             ))}
           </div>
         ) : bookmarks.length === 0 ? (
-          <div className="rounded-lg p-8 text-center border" style={{ borderColor: 'var(--border)' }}>
+          <div className="hud-panel p-8 text-center border" style={{ borderColor: 'var(--border)' }}>
             <p className="font-mono text-2xl mb-4">🔖</p>
             <p className="font-mono text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
               // no bookmarks yet
@@ -113,7 +114,7 @@ const Bookmarks = () => {
               return (
                 <div
                   key={bookmark.id}
-                  className="rounded-lg p-4 sm:p-6 border transition-all group"
+                  className="hud-panel p-4 sm:p-6 border transition-all group"
                   style={{
                     backgroundColor: 'var(--bg-secondary)',
                     borderColor: 'var(--border)',
@@ -122,9 +123,7 @@ const Bookmarks = () => {
                   onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 >
                   <div className="flex items-center gap-1.5 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-red-500 opacity-60" />
-                    <div className="w-2 h-2 rounded-full bg-yellow-500 opacity-60" />
-                    <div className="w-2 h-2 rounded-full bg-green-500 opacity-60" />
+                    <HudMark size="sm" />
                     <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>
                       {new Date(post.created_at).toLocaleDateString()}
                     </span>
@@ -166,8 +165,8 @@ const Bookmarks = () => {
                           key={tag}
                           className="text-xs px-2 py-0.5 rounded font-mono border"
                           style={{
-                            borderColor: 'var(--accent)',
-                            color: 'var(--accent)',
+                            borderColor: 'var(--accent-2)',
+                              color: 'var(--accent-2)',
                             backgroundColor: 'var(--bg-tertiary)',
                           }}
                         >

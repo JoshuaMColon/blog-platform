@@ -2,75 +2,86 @@ import { useState, useRef, useEffect } from 'react'
 import { useTheme, themeConfig } from '../context/ThemeContext'
 import type { ColorTheme } from '../context/ThemeContext'
 
-const ThemeSelector = () => {
+const Swatch = ({ color }: { color: string }) => (
+  <span
+    aria-hidden="true"
+    className="hud-swatch"
+    style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}` }}
+  />
+)
+
+const ThemeSelector = ({ compact = false }: { compact?: boolean }) => {
   const { colorTheme, darkMode, setColorTheme, toggleDarkMode } = useTheme()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  // Close dropdown when clicking outside
+  // Close the dropdown on outside clicks and on Escape
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
+    const handleKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
     document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKey)
+    }
   }, [])
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Dark/light toggle */}
+    <div className="flex items-center gap-1.5">
       <button
+        type="button"
         onClick={toggleDarkMode}
-        className="text-xs font-mono px-2 py-1 rounded border transition-all"
-        style={{
-          borderColor: 'var(--border)',
-          color: 'var(--text-secondary)',
-        }}
+        className="hud-chip"
+        aria-label={darkMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        title={darkMode === 'dark' ? 'Light mode' : 'Dark mode'}
       >
-        {darkMode === 'dark' ? 'Light' : 'Dark'}
+        <span aria-hidden="true">{darkMode === 'dark' ? '☀' : '☾'}</span>
+        {!compact && <span className="hidden lg:inline">{darkMode === 'dark' ? 'LIGHT' : 'DARK'}</span>}
       </button>
 
-      {/* Theme dropdown */}
       <div className="relative" ref={ref}>
         <button
+          type="button"
           onClick={() => setOpen(!open)}
-          className="text-xs font-mono px-2 py-1 rounded border flex items-center gap-1 transition-all"
-          style={{
-            borderColor: 'var(--border)',
-            color: 'var(--text-secondary)',
-            backgroundColor: 'var(--bg-secondary)',
-          }}
+          className="hud-chip"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-label={`Colour theme: ${themeConfig[colorTheme].label}`}
         >
-          {themeConfig[colorTheme].emoji} {themeConfig[colorTheme].label}
-          <span className="ml-1">{open ? '▲' : '▼'}</span>
+          <Swatch color={themeConfig[colorTheme][darkMode]['--accent']} />
+          {!compact && <span className="hidden lg:inline">{themeConfig[colorTheme].label.toUpperCase()}</span>}
+          <span aria-hidden="true" className="text-[9px]">{open ? '▲' : '▼'}</span>
         </button>
 
         {open && (
           <div
-            className="absolute right-0 mt-1 w-44 rounded-lg border shadow-xl z-50 overflow-hidden"
-            style={{
-              backgroundColor: 'var(--bg-secondary)',
-              borderColor: 'var(--border)',
-            }}
+            role="listbox"
+            aria-label="Colour theme"
+            className="hud-panel hud-menu absolute right-0 mt-2 w-48 z-50 py-1"
           >
-            {(Object.keys(themeConfig) as ColorTheme[]).map((theme) => (
-              <button
-                key={theme}
-                onClick={() => { setColorTheme(theme); setOpen(false) }}
-                className="w-full text-left px-4 py-2 text-xs font-mono flex items-center gap-2 transition-all"
-                style={{
-                  backgroundColor: colorTheme === theme ? 'var(--bg-tertiary)' : 'transparent',
-                  color: colorTheme === theme ? 'var(--accent)' : 'var(--text-secondary)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = colorTheme === theme ? 'var(--bg-tertiary)' : 'transparent')}
-              >
-                {themeConfig[theme].emoji} {themeConfig[theme].label}
-                {colorTheme === theme && <span className="ml-auto">✓</span>}
-              </button>
-            ))}
+            <div className="hud-menu-label">// theme.select()</div>
+            {(Object.keys(themeConfig) as ColorTheme[]).map((theme) => {
+              const active = colorTheme === theme
+              return (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  key={theme}
+                  onClick={() => { setColorTheme(theme); setOpen(false) }}
+                  className="hud-menu-item"
+                  data-active={active || undefined}
+                >
+                  <Swatch color={themeConfig[theme][darkMode]['--accent']} />
+                  <Swatch color={themeConfig[theme][darkMode]['--accent-2']} />
+                  <span className="ml-1">{themeConfig[theme].label}</span>
+                  {active && <span className="ml-auto" aria-hidden="true">●</span>}
+                </button>
+              )
+            })}
           </div>
         )}
       </div>

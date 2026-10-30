@@ -12,6 +12,7 @@ import FollowButton from '../components/FollowButton'
 import SkeletonCard from '../components/SkeletonCard'
 import AnimatedList from '../components/AnimatedList'
 import { motion } from 'framer-motion'
+import HudMark from '../components/HudMark'
 
 interface Profile {
   id: string
@@ -116,7 +117,7 @@ const UserProfile = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
         <div className="space-y-4">
           <div
-            className="rounded-lg border p-6 sm:p-8 animate-pulse"
+            className="hud-panel border p-6 sm:p-8 animate-pulse"
             style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
           >
             <div className="flex items-center gap-4 mb-6">
@@ -152,7 +153,7 @@ const UserProfile = () => {
 
         {/* Profile card */}
         <motion.div
-          className="rounded-lg border p-6 sm:p-8 mb-8"
+          className="hud-panel border p-6 sm:p-8 mb-8"
           style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -160,9 +161,7 @@ const UserProfile = () => {
         >
           {/* Terminal bar */}
           <div className="flex items-center gap-1.5 mb-6 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-            <div className="w-3 h-3 rounded-full bg-red-500" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500" />
-            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <HudMark size="lg" />
             <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>
               profile/{profile.username}
             </span>
@@ -293,7 +292,7 @@ const UserProfile = () => {
             {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : posts.length === 0 ? (
-          <div className="rounded-lg p-8 text-center border" style={{ borderColor: 'var(--border)' }}>
+          <div className="hud-panel p-8 text-center border" style={{ borderColor: 'var(--border)' }}>
             <p className="font-mono text-sm" style={{ color: 'var(--text-secondary)' }}>
               // no published posts yet
             </p>
@@ -313,7 +312,7 @@ const UserProfile = () => {
               {posts.map(post => (
                 <div
                   key={post.id}
-                  className="rounded-lg border p-4 sm:p-6 transition-all group"
+                  className="hud-panel border p-4 sm:p-6 transition-all group"
                   style={{
                     backgroundColor: 'var(--bg-secondary)',
                     borderColor: 'var(--border)',
@@ -322,9 +321,7 @@ const UserProfile = () => {
                   onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 >
                   <div className="flex items-center gap-1.5 mb-3">
-                    <div className="w-2 h-2 rounded-full bg-red-500 opacity-60" />
-                    <div className="w-2 h-2 rounded-full bg-yellow-500 opacity-60" />
-                    <div className="w-2 h-2 rounded-full bg-green-500 opacity-60" />
+                    <HudMark size="sm" />
                     <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>
                       {new Date(post.created_at).toLocaleDateString()}
                     </span>
@@ -344,8 +341,8 @@ const UserProfile = () => {
                           key={tag}
                           className="text-xs px-2 py-0.5 rounded font-mono border"
                           style={{
-                            borderColor: 'var(--accent)',
-                            color: 'var(--accent)',
+                            borderColor: 'var(--accent-2)',
+                              color: 'var(--accent-2)',
                             backgroundColor: 'var(--bg-tertiary)',
                           }}
                         >

@@ -207,7 +207,7 @@ const MyPosts = () => {
           </div>
         ) : filteredPosts.length === 0 ? (
           <div
-            className="rounded-lg p-8 text-center border"
+            className="hud-panel p-8 text-center border"
             style={{ borderColor: "var(--border)" }}
           >
             <p
@@ -229,7 +229,7 @@ const MyPosts = () => {
             {filteredPosts.map((post) => (
               <div
                 key={post.id}
-                className="rounded-lg border p-4 sm:p-5 transition-all"
+                className="hud-panel border p-4 sm:p-5 transition-all"
                 style={{
                   backgroundColor: "var(--bg-secondary)",
                   borderColor: "var(--border)",

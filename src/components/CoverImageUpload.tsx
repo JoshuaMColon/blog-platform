@@ -90,8 +90,8 @@ const CoverImageUpload = ({ currentImage, onUpload, onRemove }: CoverImageUpload
               className="text-xs font-mono px-3 py-1.5 rounded border transition-all"
               style={{
                 backgroundColor: 'var(--bg-secondary)',
-                borderColor: '#ef4444',
-                color: '#ef4444',
+                borderColor: 'var(--danger)',
+                color: 'var(--danger)',
               }}
             >
               remove()

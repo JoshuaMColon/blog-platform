@@ -7,6 +7,7 @@ import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabase";
 import ThemeSelector from '../components/ThemeSelector'
 import { motion } from 'framer-motion'
+import HudMark from '../components/HudMark'
 
 const Login = () => {
   useDocumentTitle('Sign in')
@@ -74,8 +75,10 @@ const Login = () => {
           <div className="text-xs font-mono mb-2 tracking-widest" style={{ color: 'var(--accent)' }}>
             // welcome to
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold font-mono tracking-tight" style={{ color: 'var(--text-primary)' }}>
-            &lt;BlogPlatform /&gt;
+          <h1 className="hud-hero glitch" data-text="BLOG//PLATFORM" style={{ color: 'var(--text-primary)' }}>
+            <span style={{ color: 'var(--accent)' }}>BLOG</span>
+            <span style={{ color: 'var(--accent-2)' }}>//</span>
+            PLATFORM
           </h1>
           <div className="flex items-center justify-center gap-2 mt-3">
             <div className="h-px w-16 opacity-50" style={{ backgroundColor: 'var(--accent)' }} />
@@ -87,16 +90,14 @@ const Login = () => {
         </div>
 
         <div
-          className="rounded-lg p-6 sm:p-8 shadow-lg border"
+          className="hud-panel p-6 sm:p-8 border"
           style={{
             backgroundColor: 'var(--bg-secondary)',
             borderColor: 'var(--border)',
           }}
         >
           <div className="flex items-center gap-2 mb-6 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-            <div className="w-3 h-3 rounded-full bg-red-500" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500" />
-            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <HudMark size="lg" />
             <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>
               {isSignUp ? 'auth/signup.sh' : 'auth/login.sh'}
             </span>
