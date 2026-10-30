@@ -19,6 +19,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 - **Notifications**: get notified when someone follows you, likes your post or comments on it. A navbar bell shows a live unread badge (private Realtime channel), with a dropdown, a full `/notifications` page and mark-as-read
 - **Live updates**: comments and like counts update in real time, the feed shows an "N new posts" pill, and post pages show how many people are reading right now (Supabase Realtime broadcast + presence)
 - **Discovery**: ranked Postgres full-text search over titles, tags and content (prefix matching as you type, `"phrases"` and `-exclusions`, highlighted snippets, covers on results), plus tag filters
+- **AI**: a **TL;DR** panel on every post and **Related posts** found by meaning (pgvector + the built-in `gte-small` embedding model). Both are computed by Edge Functions on publish/update; summaries use an LLM when `OPENAI_API_KEY` is set and a local extractive summarizer otherwise
 - **Themes**: five colour themes with a light/dark toggle
 - **Feel**: subtle press feedback on every control (mouse and touch), spinners on async actions, and optimistic likes that roll back if the write fails
 - **SEO**: per-page titles, meta description, Open Graph/Twitter cards, `robots.txt` and a generated `sitemap.xml`
@@ -121,14 +122,14 @@ src/
 ├── components/        # Reusable UI components and feature widgets
 ├── context/           # Global auth and theme providers
 ├── hooks/             # useDocumentTitle (per-page title/meta)
-├── lib/               # Supabase client, shared Realtime channels, image upload helpers, notifications store
+├── lib/               # Supabase client, shared Realtime channels, image upload helpers, notifications store, AI reads
 ├── pages/             # Route-based page components (heavy ones lazy-loaded)
 ├── utils/             # sanitising, slugs, reading time, press feedback
 └── App.tsx            # Application routes and providers
 e2e/                   # Playwright tests
 scripts/               # generate-sitemap.mjs (runs after vite build)
 supabase/migrations/   # SQL migrations
-supabase/functions/    # Edge Functions (Deno)
+supabase/functions/    # Edge Functions (Deno): cleanup-demo-files, embed-post, summarize-post
 ```
 
 ---
@@ -256,6 +257,47 @@ flowchart LR
 
 ---
 
+## AI: TL;DR and related posts
+
+Nothing AI runs in the browser and no key ships to the client. Two queue workers run as **Edge Functions** (`verify_jwt` off, authenticated by the Vault `internal_fn_token` like the cleanup job):
+
+- **`embed-post`** embeds title + tags + plain text (first ~2,000 chars) with Supabase's built-in **`gte-small`** model (384 dims, normalised, no API key) into `public.post_embeddings` (`extensions.vector(384)`, **HNSW** cosine index).
+- **`summarize-post`** writes `public.post_summaries`. If the **`OPENAI_API_KEY`** Edge Function secret is set it asks `gpt-4o-mini` (override with `OPENAI_MODEL`) for a 2-3 sentence summary; otherwise, or if that call fails, it uses an **extractive** summarizer (term-frequency sentence scoring with title and position bonuses, code blocks skipped, top 3 sentences in order). The panel labels which one wrote it.
+
+**When it runs:** an `after insert/update of title, content, tags, published` trigger queues both jobs in `private.ai_jobs` (re-edits coalesce into one row) and pokes both workers via `pg_net`. A `pg_cron` job (`ai-jobs-retry`, every 5 min) re-pokes them while work is queued. Each job stores a `content_hash`, so unchanged posts are skipped, and an edit made mid-run re-queues instead of being lost. Migration `20261030171000_ai_backfill.sql` queues every existing published post.
+
+**Rate limiting:** each author gets at most **30 runs per hour per kind** (tracked in `private.ai_runs`). Extra work stays queued for the cron retry. Each invocation takes at most 3 batches of 5 jobs, and a job is dropped after 5 failed attempts.
+
+**Access:** anyone can `select` embeddings and summaries of posts they can see (published, or their own draft). Only `service_role` can write, and the worker RPCs (`ai_claim_jobs`, `ai_complete_*`, `ai_fail_job`) are `service_role`-only. `public.related_posts(p_post_id, match_count)` is `security invoker`: it returns the nearest published posts with a `similarity` score, capped at 6. The UI falls back to posts with shared tags until an embedding exists. When a worker finishes, it broadcasts `ai` on the post's Realtime topic, so the TL;DR and related cards update without a reload.
+
+```mermaid
+sequenceDiagram
+    participant A as Author
+    participant DB as Postgres
+    participant E as embed-post (gte-small)
+    participant S as summarize-post
+    participant R as Reader
+    A->>DB: publish / update post
+    DB->>DB: trigger → private.ai_jobs (coalesced)
+    DB-)E: pg_net + x-internal-token
+    DB-)S: pg_net + x-internal-token
+    E->>DB: ai_claim_jobs (rate limit, hash skip)
+    E->>DB: ai_complete_embedding → post_embeddings
+    S->>DB: ai_claim_jobs
+    alt OPENAI_API_KEY set
+        S->>S: LLM summary
+    else no key / LLM error
+        S->>S: extractive summary
+    end
+    S->>DB: ai_complete_summary → post_summaries
+    DB-)R: realtime "ai" on post:{id}
+    R->>DB: post_summaries + rpc related_posts
+```
+
+**Enabling LLM summaries (optional):** Supabase Dashboard → Edge Functions → Secrets → add `OPENAI_API_KEY`, then re-queue with `delete from public.post_summaries;` followed by the backfill migration's SQL.
+
+---
+
 ## Image uploads (Storage)
 
 | Bucket | Used for | Max longest edge | Limits (enforced by Storage) |
@@ -306,6 +348,7 @@ _30 Oct 2026. "Before" is a single run; "after" is the median of three runs afte
 - **Leaked-password protection** (Supabase Auth → Attack Protection) is off.
 - **The base schema** isn't checked in as a migration (see step 4).
 - **Search** uses the English dictionary only (stemming and stop words), so posts in other languages match less well.
+- **AI** embeddings are English-first and see only the first ~512 tokens of a post. Extractive summaries pick existing sentences, so very short posts get their whole text as the TL;DR.
 - **The main JS bundle** is still about 190 KB gzipped (Supabase client, framer-motion, router); the editor and authoring pages are split out.
 
 ---

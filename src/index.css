@@ -848,3 +848,27 @@ html.dark .hud-nav {
     padding: 0 1px;
   }
 }
+
+/* ---------- AI: TL;DR + related posts ---------- */
+/* .hud-panel is unlayered, so overrides on it must be too. */
+.hud-panel.hud-tldr { box-shadow: inset 3px 0 0 var(--accent); }
+.hud-tldr-led {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 8px var(--accent);
+}
+.hud-tldr-led[data-pending='true'] { animation: hud-tldr-blink 1s steps(2, start) infinite; }
+@keyframes hud-tldr-blink { to { opacity: 0.15; } }
+.hud-tldr-src {
+  font-family: var(--font-ui); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 1px 6px; border: 1px solid rgba(var(--accent-rgb), 0.45); color: var(--accent-2, var(--accent));
+}
+.hud-ellipsis::after { content: '...'; animation: hud-tldr-blink 1s steps(2, start) infinite; }
+.hud-panel.hud-related-card { overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s; }
+.hud-panel.hud-related-card:hover { border-color: var(--accent); box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.3); }
+.hud-panel.hud-related-card:is(:active, [data-pressed]) { transform: scale(0.98); box-shadow: inset 0 0 18px rgba(var(--accent-rgb), 0.35); }
+.hud-related-cover { width: 100%; aspect-ratio: 16 / 7; object-fit: cover; border-bottom: 1px solid var(--border); }
+.hud-match { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .hud-tldr-led[data-pending='true'], .hud-ellipsis::after { animation: none; }
+  .hud-panel.hud-related-card:is(:active, [data-pressed]) { transform: none; }
+}
