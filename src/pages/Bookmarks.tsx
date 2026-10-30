@@ -1,12 +1,12 @@
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useEffect, useState } from 'react'
-import { sanitizeHtml } from '../utils/sanitize'
 import { Link, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
 import LikeButton from '../components/LikeButton'
 import BookmarkButton from '../components/BookmarkButton'
-import { calculateReadingTime, formatReadingTime } from '../utils/readingTime'
+import { formatReadingTime, POST_CARD_COLUMNS } from '../utils/readingTime'
 
 interface Bookmark {
   id: string
@@ -15,7 +15,8 @@ interface Bookmark {
     id: string
     slug: string
     title: string
-    content: string
+    excerpt: string
+    reading_minutes: number
     tags: string[]
     created_at: string
     user_id: string
@@ -25,6 +26,7 @@ interface Bookmark {
 }
 
 const Bookmarks = () => {
+  useDocumentTitle('Bookmarks')
   const { user, loading: authLoading } = useAuth()
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,11 +37,11 @@ const Bookmarks = () => {
 
       const { data, error } = await supabase
         .from('bookmarks')
-        .select('*, posts(*, profiles(username))')
+        .select(`id, created_at, posts(${POST_CARD_COLUMNS}, profiles(username))`)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (!error && data) setBookmarks(data)
+      if (!error && data) setBookmarks(data as unknown as Bookmark[])
       setLoading(false)
     }
 
@@ -127,7 +129,7 @@ const Bookmarks = () => {
                       {new Date(post.created_at).toLocaleDateString()}
                     </span>
                     <span className="text-xs font-mono ml-auto" style={{ color: 'var(--text-secondary)' }}>
-                      ⏱ {formatReadingTime(calculateReadingTime(post.content))}
+                      ⏱ {formatReadingTime(post.reading_minutes)}
                     </span>
                   </div>
 
@@ -175,11 +177,12 @@ const Bookmarks = () => {
                     </div>
                   )}
 
-                  <div
+                  <p
                     className="text-sm font-mono line-clamp-2 mb-4"
                     style={{ color: 'var(--text-secondary)' }}
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
-                  />
+                  >
+                    {post.excerpt}
+                  </p>
 
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import Spinner from './Spinner'
 
 interface BookmarkButtonProps {
   postId: string
@@ -75,9 +76,12 @@ const BookmarkButton = ({ postId, onRemove }: BookmarkButtonProps) => {
 
   return (
     <button
+      type="button"
       onClick={handleBookmark}
       disabled={loading}
-      className="flex items-center gap-1.5 px-3 py-1 rounded border font-mono text-xs transition-all disabled:opacity-50"
+      aria-busy={loading}
+      aria-pressed={bookmarked}
+      className="flex items-center gap-1.5 px-3 py-1 rounded border font-mono text-xs transition-all disabled:opacity-60"
       style={{
         borderColor: bookmarked ? 'var(--accent)' : 'var(--border)',
         color: bookmarked ? 'var(--accent)' : 'var(--text-secondary)',
@@ -96,7 +100,7 @@ const BookmarkButton = ({ postId, onRemove }: BookmarkButtonProps) => {
         }
       }}
     >
-      {bookmarked ? '🔖' : '📄'} {bookmarked ? 'saved()' : 'save()'}
+      {loading ? <Spinner label="Saving bookmark" /> : <span aria-hidden="true">{bookmarked ? '🔖' : '📄'}</span>} {bookmarked ? 'saved()' : 'save()'}
     </button>
   )
 }

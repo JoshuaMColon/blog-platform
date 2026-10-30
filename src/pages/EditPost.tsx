@@ -1,4 +1,6 @@
+import { useDocumentTitle } from "../hooks/useDocumentTitle"
 import { useEffect, useState } from "react";
+import Spinner from '../components/Spinner'
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import RichTextEditor from "../components/RichTextEditor";
@@ -9,6 +11,7 @@ import CoverImageUpload from '../components/CoverImageUpload'
 import { generateUniqueSlug } from '../utils/slugify'
 
 const EditPost = () => {
+  useDocumentTitle('Edit post')
   const { slug: currentSlug } = useParams();
   const { user, isDemo } = useAuth();
   const navigate = useNavigate();
@@ -200,10 +203,12 @@ const EditPost = () => {
             <button
               onClick={() => handleSave(true)}
               disabled={saving}
-              className="px-4 py-2 rounded font-mono text-xs font-bold transition-all disabled:opacity-50"
+              aria-busy={saving}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded font-mono text-xs font-bold transition-all disabled:opacity-50"
               style={{ backgroundColor: 'var(--accent)', color: 'var(--btn-text)' }}
             >
-              {saving ? '> saving...' : '> save_publish()'}
+              {saving && <Spinner label="Saving post" />}
+              {saving ? 'saving...' : '> save_publish()'}
             </button>
           </div>
         </div>

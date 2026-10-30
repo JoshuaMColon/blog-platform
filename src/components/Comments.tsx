@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import toast from 'react-hot-toast'
+import Spinner from './Spinner'
 
 interface Comment {
   id: string
@@ -17,6 +18,10 @@ const Comments = ({ postId }: { postId: string }) => {
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -60,9 +65,35 @@ const Comments = ({ postId }: { postId: string }) => {
 }
 
   const handleDelete = async (commentId: string) => {
-    await supabase.from('comments').delete().eq('id', commentId)
-    setComments(comments.filter(c => c.id !== commentId))
+    setDeletingId(commentId)
+    const { error } = await supabase.from('comments').delete().eq('id', commentId)
+    setDeletingId(null)
+    if (error) {
+      toast.error('Failed to delete comment')
+      return
+    }
+    setComments(prev => prev.filter(c => c.id !== commentId))
     toast.success('Comment deleted!')
+  }
+
+  const startEdit = (comment: Comment) => {
+    setEditingId(comment.id)
+    setEditText(comment.content)
+  }
+
+  const handleSaveEdit = async (commentId: string) => {
+    const text = editText.trim()
+    if (!text) return
+    setSavingEdit(true)
+    const { error } = await supabase.from('comments').update({ content: text }).eq('id', commentId)
+    setSavingEdit(false)
+    if (error) {
+      toast.error(error.message.startsWith('Demo limit') ? error.message : 'Failed to update comment')
+      return
+    }
+    setComments(prev => prev.map(c => (c.id === commentId ? { ...c, content: text } : c)))
+    setEditingId(null)
+    toast.success('Comment updated!')
   }
 
   return (
@@ -88,12 +119,15 @@ const Comments = ({ postId }: { postId: string }) => {
           />
           <div className="flex justify-end mt-2">
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={submitting || !newComment.trim()}
-              className="px-4 py-1.5 rounded font-mono font-bold text-xs disabled:opacity-50 tracking-wide"
+              aria-busy={submitting}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded font-mono font-bold text-xs disabled:opacity-50 tracking-wide"
               style={{ backgroundColor: 'var(--accent)', color: 'var(--btn-text)' }}
             >
-              {submitting ? '> posting...' : '> post_comment()'}
+              {submitting && <Spinner label="Posting comment" />}
+              {submitting ? 'posting...' : '> post_comment()'}
             </button>
           </div>
         </div>
@@ -104,7 +138,7 @@ const Comments = ({ postId }: { postId: string }) => {
       )}
 
       {loading ? (
-        <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>$ loading...</p>
+        <p className="text-xs font-mono inline-flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}><Spinner label="Loading comments" /> loading...</p>
       ) : comments.length === 0 ? (
         <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>// no comments yet</p>
       ) : (
@@ -127,19 +161,74 @@ const Comments = ({ postId }: { postId: string }) => {
                     · {new Date(comment.created_at).toLocaleDateString()}
                   </span>
                 </div>
-                {user?.id === comment.user_id && (
-                  <button
-                    onClick={() => handleDelete(comment.id)}
-                    className="text-xs font-mono hover:text-red-500 transition-colors"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    rm()
-                  </button>
+                {user?.id === comment.user_id && editingId !== comment.id && (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(comment)}
+                      className="text-xs font-mono hover:underline"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      edit()
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(comment.id)}
+                      disabled={deletingId === comment.id}
+                      aria-busy={deletingId === comment.id}
+                      className="inline-flex items-center gap-1 text-xs font-mono hover:text-red-500 transition-colors disabled:opacity-60"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      {deletingId === comment.id && <Spinner size={10} label="Deleting comment" />}
+                      rm()
+                    </button>
+                  </div>
                 )}
               </div>
-              <p className="text-sm font-mono" style={{ color: 'var(--text-primary)' }}>
-                {comment.content}
-              </p>
+              {editingId === comment.id ? (
+                <div>
+                  <textarea
+                    value={editText}
+                    onChange={e => setEditText(e.target.value)}
+                    aria-label="Edit comment"
+                    className="w-full rounded px-3 py-2 text-sm font-mono focus:outline-none resize-none border"
+                    style={{
+                      backgroundColor: 'var(--bg-secondary)',
+                      borderColor: 'var(--accent)',
+                      color: 'var(--text-primary)',
+                    }}
+                    maxLength={isDemo ? 500 : undefined}
+                    rows={2}
+                    autoFocus
+                  />
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      disabled={savingEdit}
+                      className="px-3 py-1 rounded border font-mono text-xs"
+                      style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+                    >
+                      cancel()
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEdit(comment.id)}
+                      disabled={savingEdit || !editText.trim()}
+                      aria-busy={savingEdit}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs disabled:opacity-50"
+                      style={{ backgroundColor: 'var(--accent)', color: 'var(--btn-text)' }}
+                    >
+                      {savingEdit && <Spinner size={10} label="Saving comment" />}
+                      save()
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm font-mono whitespace-pre-wrap break-words" style={{ color: 'var(--text-primary)' }}>
+                  {comment.content}
+                </p>
+              )}
             </div>
           ))}
         </div>

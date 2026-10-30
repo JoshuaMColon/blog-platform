@@ -1,7 +1,9 @@
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useEffect, useState } from 'react'
-import { sanitizeHtml } from '../utils/sanitize'
+import Spinner from '../components/Spinner'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { POST_CARD_COLUMNS } from '../utils/readingTime'
 import { useAuth } from '../context/useAuth'
 import Navbar from '../components/Navbar'
 import LikeButton from '../components/LikeButton'
@@ -23,7 +25,8 @@ interface Post {
   id: string
   slug: string
   title: string
-  content: string
+  excerpt: string
+  reading_minutes: number
   tags: string[]
   created_at: string
 }
@@ -42,6 +45,7 @@ const UserProfile = () => {
   const [followingCount, setFollowingCount] = useState(0)
 
   const isOwner = user?.id === id
+  useDocumentTitle(profile ? `@${profile.username}` : 'Profile', profile?.bio || undefined)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -61,13 +65,13 @@ const UserProfile = () => {
 
       const { data: postsData } = await supabase
         .from('posts')
-        .select('*')
+        .select(POST_CARD_COLUMNS)
         .eq('user_id', id)
         .eq('published', true)
         .order('created_at', { ascending: false })
 
       if (postsData) {
-        setPosts(postsData)
+        setPosts(postsData as unknown as Post[])
         setPostCount(postsData.length)
       }
 
@@ -237,9 +241,11 @@ const UserProfile = () => {
                     <button
                       onClick={handleSaveBio}
                       disabled={savingBio}
-                      className="text-xs font-mono px-3 py-1 rounded font-bold transition-all disabled:opacity-50"
+                      aria-busy={savingBio}
+                      className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded font-bold transition-all disabled:opacity-50"
                       style={{ backgroundColor: 'var(--accent)', color: 'var(--btn-text)' }}
                     >
+                      {savingBio && <Spinner size={10} label="Saving bio" />}
                       {savingBio ? 'saving...' : 'save()'}
                     </button>
                   </div>
@@ -349,11 +355,12 @@ const UserProfile = () => {
                     </div>
                   )}
 
-                  <div
+                  <p
                     className="text-sm font-mono line-clamp-2 mb-4"
                     style={{ color: 'var(--text-secondary)' }}
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
-                  />
+                  >
+                    {post.excerpt}
+                  </p>
 
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <LikeButton postId={post.id} />

@@ -1,4 +1,6 @@
+import { useDocumentTitle } from "../hooks/useDocumentTitle"
 import { useState, useEffect } from "react";
+import Spinner from '../components/Spinner'
 import { Navigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/useAuth";
@@ -7,6 +9,7 @@ import ThemeSelector from '../components/ThemeSelector'
 import { motion } from 'framer-motion'
 
 const Login = () => {
+  useDocumentTitle('Sign in')
   const { user, signInAsGuest } = useAuth();
   const [demoLoading, setDemoLoading] = useState(false);
   const { toggleTheme } = useTheme();
@@ -152,13 +155,15 @@ const Login = () => {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full py-2 rounded font-mono font-bold text-sm disabled:opacity-50 transition-all tracking-widest"
+            aria-busy={loading}
+            className="w-full inline-flex items-center justify-center gap-2 py-2 rounded font-mono font-bold text-sm disabled:opacity-50 transition-all tracking-widest"
             style={{
               backgroundColor: 'var(--accent)',
               color: 'var(--btn-text)',
             }}
           >
-            {loading ? '> loading...' : isSignUp ? '> CREATE ACCOUNT' : '> SIGN IN'}
+            {loading && <Spinner label="Signing in" />}
+            {loading ? 'loading...' : isSignUp ? '> CREATE ACCOUNT' : '> SIGN IN'}
           </button>
 
           <div className="flex items-center gap-3 my-5">
@@ -170,14 +175,16 @@ const Login = () => {
           <button
             onClick={handleDemo}
             disabled={demoLoading}
-            className="w-full py-2 rounded font-mono font-bold text-sm disabled:opacity-50 transition-all tracking-widest border active:scale-[0.98]"
+            aria-busy={demoLoading}
+            className="w-full inline-flex items-center justify-center gap-2 py-2 rounded font-mono font-bold text-sm disabled:opacity-50 transition-all tracking-widest border"
             style={{
               borderColor: 'var(--accent)',
               color: 'var(--accent)',
               backgroundColor: 'var(--bg-tertiary)',
             }}
           >
-            {demoLoading ? '> starting demo...' : '✦ TRY THE DEMO'}
+            {demoLoading && <Spinner label="Starting demo" />}
+            {demoLoading ? 'starting demo...' : '✦ TRY THE DEMO'}
           </button>
           <p className="text-center text-[11px] font-mono mt-2" style={{ color: 'var(--text-secondary)' }}>
             // no sign-up needed · guest data clears after a day

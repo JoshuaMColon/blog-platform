@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /create
+Disallow: /edit/
+Disallow: /my-posts
+Disallow: /bookmarks
+Disallow: /following
+
+Sitemap: https://blog-platform-one-xi.vercel.app/sitemap.xml

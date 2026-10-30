@@ -1,7 +1,9 @@
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 
 const NotFound = () => {
+  useDocumentTitle('Page not found')
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
