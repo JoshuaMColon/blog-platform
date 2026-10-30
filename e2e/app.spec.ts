@@ -85,3 +85,23 @@ test('guest demo signs in, or skips while anonymous sign-ins are off', async ({ 
   test.skip(await disabled.isVisible(), 'Anonymous sign-ins are disabled in Supabase')
   await expect(badge).toBeVisible()
 })
+
+test('post page shows a live presence-based "reading now" counter', async ({ browser }) => {
+  const a = await browser.newContext()
+  const b = await browser.newContext()
+  try {
+    const pageA = await a.newPage()
+    const pageB = await b.newPage()
+    await pageA.goto(`/post/${POST_SLUG}`)
+    await pageB.goto(`/post/${POST_SLUG}`)
+    const readers = async () =>
+      Number((await pageA.getByTestId('reading-now').textContent())?.match(/\d+/)?.[0] ?? 0)
+    // Other test workers (or real visitors) may be on the same post, so only
+    // require that this tab sees at least both of our readers.
+    await expect.poll(readers, { timeout: 20_000 }).toBeGreaterThanOrEqual(2)
+    await expect(pageA.getByTestId('reading-now')).toContainText('reading now')
+  } finally {
+    await a.close()
+    await b.close()
+  }
+})

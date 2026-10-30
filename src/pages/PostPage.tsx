@@ -15,6 +15,7 @@ import SkeletonPost from '../components/SkeletonPost'
 import FadeIn from '../components/FadeIn'
 import { motion } from 'framer-motion'
 import HudMark from '../components/HudMark'
+import ReadingNow from '../components/ReadingNow'
 
 interface Post {
   id: string
@@ -192,9 +193,10 @@ const PostPage = () => {
           )}
 
           {/* Likes and Bookmark */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-6 flex-wrap">
             <LikeButton postId={post.id} />
             <BookmarkButton postId={post.id} />
+            <span className="ml-auto"><ReadingNow postId={post.id} /></span>
           </div>
 
           {/* Content */}

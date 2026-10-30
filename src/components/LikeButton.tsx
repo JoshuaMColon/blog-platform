@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import toast from 'react-hot-toast'
+import { onLive, postTopic } from '../lib/realtime'
 
 interface LikeButtonProps {
   postId: string
@@ -29,7 +30,20 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
       }
     }
     fetchLikes()
-    return () => { cancelled = true }
+    // Live: the likes trigger broadcasts on post:<id>; re-read so both the
+    // count and this user's own liked state stay correct across tabs.
+    const stop = onLive(postTopic(postId), 'likes', payload => {
+      if (pending.current) return
+      if (typeof payload.count === 'number' && !user) {
+        setLikeCount(payload.count)
+        return
+      }
+      fetchLikes()
+    })
+    return () => {
+      cancelled = true
+      stop()
+    }
   }, [postId, user])
 
   const handleLike = async () => {

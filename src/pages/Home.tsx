@@ -9,8 +9,9 @@ import SkeletonCard from '../components/SkeletonCard'
 import AnimatedList from '../components/AnimatedList'
 import { Link, Navigate } from 'react-router-dom'
 import { formatReadingTime, POST_CARD_COLUMNS } from '../utils/readingTime'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import HudMark from '../components/HudMark'
+import { FEED_TOPIC, onLive } from '../lib/realtime'
 
 interface Post {
   id: string
@@ -34,6 +35,9 @@ const Home = () => {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const [reloadKey, setReloadKey] = useState(0)
+  // Ids of posts published by others since this feed was loaded.
+  const [freshIds, setFreshIds] = useState<string[]>([])
 
   const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE)
 
@@ -59,7 +63,26 @@ const Home = () => {
     }
 
     if (user) fetchPosts()
-  }, [user, currentPage])
+  }, [user, currentPage, reloadKey])
+
+  // Live: the posts trigger broadcasts on 'feed' when a post is published.
+  useEffect(() => {
+    if (!user) return
+    return onLive(FEED_TOPIC, 'new_post', payload => {
+      const id = typeof payload.id === 'string' ? payload.id : null
+      if (!id) return
+      setFreshIds(prev => (prev.includes(id) ? prev : [...prev, id]))
+    })
+  }, [user])
+
+  const unseen = freshIds.filter(id => !posts.some(p => p.id === id)).length
+
+  const showFresh = () => {
+    setFreshIds([])
+    setCurrentPage(1)
+    setReloadKey(k => k + 1)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -71,6 +94,24 @@ const Home = () => {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <Navbar />
+      <div className="hud-pill-wrap">
+        <AnimatePresence>
+          {unseen > 0 && (
+            <motion.button
+              type="button"
+              className="hud-pill"
+              onClick={showFresh}
+              initial={{ opacity: 0, y: -12, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              aria-live="polite"
+            >
+              ↑ {unseen} new post{unseen !== 1 ? 's' : ''} · load()
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
       <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
 
         {/* Header */}

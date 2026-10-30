@@ -15,6 +15,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 - **Auth**: email/password sign-up and login, plus an optional anonymous **guest demo**
 - **Posts**: create, edit, delete, draft or publish, with tags, a cover image and rich text (TipTap)
 - **Social**: comments (edit and delete your own), likes, follows, bookmarks and a following feed
+- **Live updates**: comments and like counts update in real time, the feed shows an "N new posts" pill, and post pages show how many people are reading right now (Supabase Realtime broadcast + presence)
 - **Discovery**: search by title or content, and filter by tag
 - **Themes**: five colour themes with a light/dark toggle
 - **Feel**: subtle press feedback on every control (mouse and touch), spinners on async actions, and optimistic likes that roll back if the write fails
@@ -29,7 +30,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 | Frontend   | React 19 + TypeScript, Vite, React Router 7    |
 | Styling    | Tailwind CSS, framer-motion                    |
 | Editor     | TipTap (lazy-loaded on the create/edit routes) |
-| Backend    | Supabase (Auth, Postgres + RLS, Storage, Cron) |
+| Backend    | Supabase (Auth, Postgres + RLS, Realtime, Storage, Cron) |
 | Testing/CI | GitHub Actions, ESLint, TypeScript, Playwright |
 | Deployment | Vercel (SPA rewrite in `vercel.json`)          |
 
@@ -117,7 +118,7 @@ src/
 ├── components/        # Reusable UI components and feature widgets
 ├── context/           # Global auth and theme providers
 ├── hooks/             # useDocumentTitle (per-page title/meta)
-├── lib/               # Supabase client
+├── lib/               # Supabase client, shared Realtime channels
 ├── pages/             # Route-based page components (heavy ones lazy-loaded)
 ├── utils/             # sanitising, slugs, reading time, press feedback
 └── App.tsx            # Application routes and providers
@@ -160,6 +161,36 @@ flowchart TD
 - Every write policy checks ownership with `(select auth.uid())`, so Postgres evaluates it once per query instead of once per row.
 - A `BEFORE UPDATE` trigger on `comments` stops `post_id`, `user_id` and `created_at` from changing when someone edits a comment.
 - `posts.excerpt` and `posts.reading_minutes` are generated columns, so feed cards never download full post bodies.
+
+---
+
+## Live updates (Realtime)
+
+Database triggers broadcast small "something changed" events on **public** Realtime channels. Clients then re-read through the normal RLS-protected API, so a broadcast never carries row data a reader couldn't already see (drafts never trigger anything).
+
+| Channel          | Event      | Sent when                                   | Client reaction                       |
+| ---------------- | ---------- | ------------------------------------------- | ------------------------------------- |
+| `post:<post_id>` | `likes`    | a like is added or removed                  | like button re-reads count and state  |
+| `post:<post_id>` | `comments` | a comment is added, edited or deleted       | comment list re-reads                 |
+| `post:<post_id>` | presence   | a tab opens or leaves the post              | "N reading now" counter               |
+| `feed`           | `new_post` | a post is inserted published, or published  | "↑ N new posts" pill on the feed      |
+
+```mermaid
+sequenceDiagram
+    participant A as Reader A (post page)
+    participant RT as Supabase Realtime
+    participant DB as Postgres
+    participant B as Reader B
+    A->>RT: join post:<id> (broadcast + presence)
+    B->>RT: join post:<id>
+    RT-->>A: presence sync (2 reading now)
+    B->>DB: insert comment (RLS: own user_id)
+    DB->>RT: trigger: realtime.send('comments', post:<id>)
+    RT-->>A: comments event
+    A->>DB: select comments (RLS)
+```
+
+`src/lib/realtime.ts` keeps **one ref-counted channel per topic** (the like button, comments and presence counter on a post page share it), and every component unsubscribes on unmount; the socket channel is removed shortly after its last user goes away.
 
 ---
 
