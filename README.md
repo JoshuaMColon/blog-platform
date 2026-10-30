@@ -28,7 +28,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 | Styling    | Tailwind CSS, framer-motion                    |
 | Editor     | TipTap (lazy-loaded on the create/edit routes) |
 | Backend    | Supabase (Auth, Postgres + RLS, Storage, Cron) |
-| Testing/CI | GitHub Actions, ESLint, Playwright             |
+| Testing    | ESLint, TypeScript, Playwright                 |
 | Deployment | Vercel (SPA rewrite in `vercel.json`)          |
 
 ---
@@ -122,7 +122,6 @@ src/
 e2e/                   # Playwright tests
 scripts/               # generate-sitemap.mjs (runs after vite build)
 supabase/migrations/   # SQL migrations
-.github/workflows/     # CI: typecheck, lint, build, Playwright
 ```
 
 ---
