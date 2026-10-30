@@ -138,6 +138,8 @@ supabase/functions/    # Edge Functions (Deno): cleanup-demo-files, embed-post, 
 
 The login screen has a **Try the demo** button that signs visitors in with Supabase anonymous auth.
 
+Linking to **`/demo`** (an alias for `/login?demo=1`) starts the guest session straight away, so a link from elsewhere (like the portfolio) lands in the demo in one click. Visitors who are already signed in just go to the feed, and if anonymous sign-ins are off the login screen explains that instead.
+
 - Guests can read everything and create posts, comments, likes, follows and bookmarks within small caps (3 posts, 20 comments, 50 likes, 5 images, length limits). RLS still stops them editing or deleting anyone else's content.
 - A **DEMO** badge shows in the navbar while you're signed in as a guest.
 - A `pg_cron` job (`cleanup-demo-users`, hourly) deletes anonymous users older than 24 hours. Their content goes with them through cascading foreign keys.
