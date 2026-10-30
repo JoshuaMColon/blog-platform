@@ -12,7 +12,7 @@ import { generateUniqueSlug } from '../utils/slugify'
 
 const CreatePost = () => {
   useDocumentTitle('New post')
-  const { user, isDemo, loading: authLoading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -85,17 +85,11 @@ const CreatePost = () => {
           }}
         >
           {/* Cover Image */}
-          {isDemo ? (
-            <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-              // demo mode: cover image uploads are turned off for guests (up to 3 posts per guest)
-            </p>
-          ) : (
-            <CoverImageUpload
-              currentImage={coverImage}
-              onUpload={(url) => setCoverImage(url)}
-              onRemove={() => setCoverImage('')}
-            />
-          )}
+          <CoverImageUpload
+            currentImage={coverImage}
+            onUpload={(url) => setCoverImage(url)}
+            onRemove={() => setCoverImage('')}
+          />
 
           <div>
             <label htmlFor="post-title" className="block text-xs font-mono mb-2 tracking-widest" style={{ color: 'var(--accent)' }}>

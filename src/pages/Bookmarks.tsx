@@ -136,7 +136,9 @@ const Bookmarks = () => {
                     <img
                       src={post.cover_image}
                       alt={post.title}
-                      className="w-full h-40 object-cover rounded-lg mb-4"
+                      className="hud-cover h-40 mb-4"
+                    loading="lazy"
+                    decoding="async"
                     />
                   )}
 

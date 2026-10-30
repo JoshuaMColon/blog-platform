@@ -30,6 +30,7 @@ interface Post {
   reading_minutes: number
   tags: string[]
   created_at: string
+  cover_image: string | null
 }
 
 const UserProfile = () => {
@@ -320,6 +321,9 @@ const UserProfile = () => {
                   onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
                 >
+                  {post.cover_image && (
+                    <img src={post.cover_image} alt="" className="hud-cover h-40 mb-4" loading="lazy" decoding="async" />
+                  )}
                   <div className="flex items-center gap-1.5 mb-3">
                     <HudMark size="sm" />
                     <span className="text-xs font-mono ml-2" style={{ color: 'var(--text-secondary)' }}>

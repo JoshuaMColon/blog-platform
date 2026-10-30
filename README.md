@@ -14,6 +14,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 
 - **Auth**: email/password sign-up and login, plus an optional anonymous **guest demo**
 - **Posts**: create, edit, delete, draft or publish, with tags, a cover image and rich text (TipTap)
+- **Image uploads**: cover images and inline editor images (button, paste or drop), resized and compressed to WebP in the browser, stored in Supabase Storage under each user's own folder
 - **Social**: comments (edit and delete your own), likes, follows, bookmarks and a following feed
 - **Live updates**: comments and like counts update in real time, the feed shows an "N new posts" pill, and post pages show how many people are reading right now (Supabase Realtime broadcast + presence)
 - **Discovery**: search by title or content, and filter by tag
@@ -118,13 +119,14 @@ src/
 ├── components/        # Reusable UI components and feature widgets
 ├── context/           # Global auth and theme providers
 ├── hooks/             # useDocumentTitle (per-page title/meta)
-├── lib/               # Supabase client, shared Realtime channels
+├── lib/               # Supabase client, shared Realtime channels, image upload helpers
 ├── pages/             # Route-based page components (heavy ones lazy-loaded)
 ├── utils/             # sanitising, slugs, reading time, press feedback
 └── App.tsx            # Application routes and providers
 e2e/                   # Playwright tests
 scripts/               # generate-sitemap.mjs (runs after vite build)
 supabase/migrations/   # SQL migrations
+supabase/functions/    # Edge Functions (Deno)
 ```
 
 ---
@@ -133,9 +135,10 @@ supabase/migrations/   # SQL migrations
 
 The login screen has a **Try the demo** button that signs visitors in with Supabase anonymous auth.
 
-- Guests can read everything and create posts, comments, likes, follows and bookmarks within small caps (3 posts, 20 comments, 50 likes, length limits, no file uploads). RLS still stops them editing or deleting anyone else's content.
+- Guests can read everything and create posts, comments, likes, follows and bookmarks within small caps (3 posts, 20 comments, 50 likes, 5 images, length limits). RLS still stops them editing or deleting anyone else's content.
 - A **DEMO** badge shows in the navbar while you're signed in as a guest.
 - A `pg_cron` job (`cleanup-demo-users`, hourly) deletes anonymous users older than 24 hours. Their content goes with them through cascading foreign keys.
+- A second job (`cleanup-demo-files`, hourly) calls an Edge Function that deletes guests' uploaded images (and any orphaned files) through the Storage API.
 - Sample posts are seeded by the `blog_team` account.
 - **Requires:** Supabase Dashboard → Authentication → Sign In / Providers → **Allow anonymous sign-ins**. Until that's on, the button shows a friendly "not switched on yet" message.
 
@@ -153,7 +156,7 @@ flowchart TD
     RLS -->|own rows only| W["insert / update / delete<br/>posts, comments, likes,<br/>follows, bookmarks, profile"]
     RLS -->|anyone| R["read published posts,<br/>comments, likes, profiles"]
     G --> T{"Demo-limit triggers"}
-    T -->|"over cap: 3 posts, 20 comments,<br/>50 likes, length limits"| X["Error: Demo limit ..."]
+    T -->|"over cap: 3 posts, 20 comments,<br/>50 likes, 5 images, length limits"| X["Error: Demo limit ..."]
     T -->|"within cap"| RLS
     C["pg_cron: cleanup-demo-users<br/>(hourly)"] -->|"delete guests older than 24h<br/>(content cascades)"| G
 ```
@@ -191,6 +194,34 @@ sequenceDiagram
 ```
 
 `src/lib/realtime.ts` keeps **one ref-counted channel per topic** (the like button, comments and presence counter on a post page share it), and every component unsubscribes on unmount; the socket channel is removed shortly after its last user goes away.
+
+---
+
+## Image uploads (Storage)
+
+| Bucket | Used for | Max longest edge | Limits (enforced by Storage) |
+| --- | --- | --- | --- |
+| `covers` | post cover images (cards + post header) | 1600 px | 2 MB, JPEG/PNG/WebP/GIF |
+| `post-images` | images inside post content | 1400 px | 2 MB, JPEG/PNG/WebP/GIF |
+
+- **Client side** (`src/lib/images.ts`): accepts JPG/PNG/WebP/GIF up to 10 MB, downsizes with a canvas and re-encodes to WebP (JPEG fallback), lowering quality until it fits under 2 MB. A 4.9 MB PNG becomes a ~120 KB WebP. Animated GIFs become a still image.
+- **Paths** are `<bucket>/<uid>/<random uuid>.webp`. RLS only allows insert/update/delete (and listing) inside your own `<uid>/` folder. Both buckets are public, so images are served from the public CDN URL, and nobody can list other users' files.
+- **Guests** can store at most 5 images (a restrictive policy backed by a security-definer counter in the non-exposed `private` schema). They can only set covers from their own folder.
+- **Rendering:** the sanitizer only keeps `<img>` tags whose `src` is in this project's buckets, so posts can't embed tracking pixels or hot-link other sites. Images are lazy-loaded.
+
+```mermaid
+flowchart LR
+    F[File picked / pasted / dropped] --> V{"type + size<br/>check"}
+    V -->|ok| C["canvas resize<br/>→ WebP ≤ 2 MB"]
+    C --> S["Storage upload<br/>covers/ or post-images/&lt;uid&gt;/…"]
+    S --> P{"RLS: own folder?<br/>guest &lt; 5 images?"}
+    P -->|yes| U[public URL → cover_image / &lt;img&gt;]
+    P -->|no| E[toast: friendly error]
+    J["pg_cron: cleanup-demo-files"] -->|"pg_net + internal token"| EF["Edge Function<br/>(service role)"]
+    EF -->|"Storage API remove()"| S
+```
+
+The Edge Function (`supabase/functions/cleanup-demo-files`) checks a random token stored in Supabase Vault, so it needs no project key in the database or the repo.
 
 ---
 

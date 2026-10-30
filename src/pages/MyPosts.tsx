@@ -16,6 +16,7 @@ interface Post {
   content: string;
   tags: string[];
   published: boolean;
+  cover_image: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -236,6 +237,15 @@ const MyPosts = () => {
                 }}
               >
                 <div className="flex items-start justify-between gap-4 flex-wrap">
+                  {post.cover_image && (
+                    <img
+                      src={post.cover_image}
+                      alt=""
+                      className="hud-cover w-20 h-14 sm:w-28 sm:h-20 shrink-0"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
                   <div className="flex-1 min-w-0">
                     {/* Status badge */}
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
