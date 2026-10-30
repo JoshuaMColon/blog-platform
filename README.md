@@ -1,5 +1,7 @@
 # Blog Platform
 
+[![CI](https://github.com/JoshuaMColon/blog-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JoshuaMColon/blog-platform/actions/workflows/ci.yml)
+
 A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supabase. It covers sign-up and login, a TipTap rich-text editor, comments, likes, follows, bookmarks, tag search and a one-click guest demo, with Postgres row-level security (RLS) doing the access control.
 
 **Live:** https://blog-platform-one-xi.vercel.app
@@ -28,7 +30,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 | Styling    | Tailwind CSS, framer-motion                    |
 | Editor     | TipTap (lazy-loaded on the create/edit routes) |
 | Backend    | Supabase (Auth, Postgres + RLS, Storage, Cron) |
-| Testing    | ESLint, TypeScript, Playwright                 |
+| Testing/CI | GitHub Actions, ESLint, TypeScript, Playwright |
 | Deployment | Vercel (SPA rewrite in `vercel.json`)          |
 
 ---
