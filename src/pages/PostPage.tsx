@@ -16,6 +16,8 @@ import FadeIn from '../components/FadeIn'
 import { motion } from 'framer-motion'
 import HudMark from '../components/HudMark'
 import ReadingNow from '../components/ReadingNow'
+import TldrPanel from '../components/TldrPanel'
+import RelatedPosts from '../components/RelatedPosts'
 
 interface Post {
   id: string
@@ -27,6 +29,7 @@ interface Post {
   user_id: string
   cover_image: string | null
   excerpt?: string | null
+  published: boolean
   profiles: { username: string }
 }
 
@@ -48,7 +51,7 @@ const PostPage = () => {
     const fetchPost = async () => {
       const { data, error } = await supabase
         .from('posts')
-        .select('id, slug, title, content, tags, created_at, user_id, cover_image, excerpt, profiles(username)')
+        .select('id, slug, title, content, tags, created_at, user_id, cover_image, excerpt, published, profiles(username)')
         .eq('slug', slug)
         .single()
 
@@ -199,12 +202,16 @@ const PostPage = () => {
             <span className="ml-auto"><ReadingNow postId={post.id} /></span>
           </div>
 
+          <TldrPanel postId={post.id} published={post.published} />
+
           {/* Content */}
           <div
             className="post-body"
             style={{ color: 'var(--text-primary)' }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
           />
+
+          <RelatedPosts postId={post.id} tags={post.tags ?? []} />
 
           {/* Back button */}
           <button

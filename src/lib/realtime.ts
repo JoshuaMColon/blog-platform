@@ -23,7 +23,7 @@ interface Entry {
 }
 
 // Events the database triggers send (see supabase/migrations/*realtime*).
-const EVENTS = ['likes', 'comments', 'new_post'] as const
+const EVENTS = ['likes', 'comments', 'new_post', 'ai'] as const
 export type LiveEvent = (typeof EVENTS)[number]
 
 // Keep a channel open briefly after its last user unmounts, so StrictMode
