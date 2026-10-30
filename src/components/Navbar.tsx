@@ -3,7 +3,7 @@ import { useAuth } from '../context/useAuth'
 import ThemeSelector from './ThemeSelector'
 
 const Navbar = () => {
-  const { user, signOut } = useAuth()
+  const { user, isDemo, signOut } = useAuth()
 
   return (
     <nav
@@ -23,6 +23,15 @@ const Navbar = () => {
         >
           &lt;<span style={{ color: 'var(--accent)' }}>Blog</span>Platform /&gt;
         </Link>
+        {isDemo && (
+          <span
+            className="text-[10px] font-mono font-bold tracking-widest px-2 py-0.5 rounded border flex-shrink-0"
+            style={{ borderColor: 'var(--accent)', color: 'var(--accent)', backgroundColor: 'var(--bg-tertiary)' }}
+            title="You're exploring as a guest. Guest posts and comments are removed after a day."
+          >
+            DEMO
+          </span>
+        )}
 
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
           <ThemeSelector />
@@ -82,7 +91,7 @@ const Navbar = () => {
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
               >
-                {user.email}
+                {isDemo ? 'guest' : user.email}
               </Link>
               <button
                 onClick={signOut}
@@ -91,7 +100,7 @@ const Navbar = () => {
                 onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
               >
-                logout()
+                {isDemo ? 'exit_demo()' : 'logout()'}
               </button>
             </>
           ) : (
@@ -108,6 +117,11 @@ const Navbar = () => {
           )}
         </div>
       </div>
+      {isDemo && (
+        <div className="max-w-4xl mx-auto mt-3 text-[11px] font-mono" style={{ color: 'var(--text-secondary)' }}>
+          // demo mode: you're a guest. Post, like and comment freely (within small limits); your content clears after a day.
+        </div>
+      )}
     </nav>
   )
 }

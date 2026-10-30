@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { sanitizeHtml } from '../utils/sanitize'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
@@ -194,7 +195,7 @@ const PostPage = () => {
           <div
             className="prose max-w-none font-mono text-sm leading-relaxed"
             style={{ color: 'var(--text-primary)' }}
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
           />
 
           {/* Back button */}

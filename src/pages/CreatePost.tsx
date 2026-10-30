@@ -9,7 +9,7 @@ import CoverImageUpload from '../components/CoverImageUpload'
 import { generateUniqueSlug } from '../utils/slugify'
 
 const CreatePost = () => {
-  const { user, loading: authLoading } = useAuth()
+  const { user, isDemo, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -68,11 +68,17 @@ const CreatePost = () => {
         )}
 
         {/* Cover Image */}
+        {isDemo ? (
+          <p className="text-xs font-mono mb-4 text-gray-500">
+            // demo mode: cover image uploads are turned off for guests (up to 3 posts per guest)
+          </p>
+        ) : (
           <CoverImageUpload
             currentImage={coverImage}
             onUpload={(url) => setCoverImage(url)}
             onRemove={() => setCoverImage('')}
           />
+        )}
 
         <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           <div>

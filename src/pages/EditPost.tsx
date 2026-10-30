@@ -10,7 +10,7 @@ import { generateUniqueSlug } from '../utils/slugify'
 
 const EditPost = () => {
   const { slug: currentSlug } = useParams();
-  const { user } = useAuth();
+  const { user, isDemo } = useAuth();
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -126,11 +126,13 @@ const EditPost = () => {
           }}
         >
           {/* Cover Image */}
-          <CoverImageUpload
-            currentImage={coverImage}
-            onUpload={(url) => setCoverImage(url)}
-            onRemove={() => setCoverImage('')}
-          />
+          {!isDemo && (
+            <CoverImageUpload
+              currentImage={coverImage}
+              onUpload={(url) => setCoverImage(url)}
+              onRemove={() => setCoverImage('')}
+            />
+          )}
 
           {/* Title */}
           <div>

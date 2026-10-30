@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
+import toast from 'react-hot-toast'
 
 interface LikeButtonProps {
   postId: string
@@ -36,9 +37,13 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
       setLiked(false)
       setLikeCount(prev => prev - 1)
     } else {
-      await supabase.from('likes').insert({ post_id: postId, user_id: user.id })
-      setLiked(true)
-      setLikeCount(prev => prev + 1)
+      const { error } = await supabase.from('likes').insert({ post_id: postId, user_id: user.id })
+      if (error) {
+        toast.error(error.message.startsWith('Demo limit') ? error.message : 'Failed to like post')
+      } else {
+        setLiked(true)
+        setLikeCount(prev => prev + 1)
+      }
     }
     setLoading(false)
   }
