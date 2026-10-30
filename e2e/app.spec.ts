@@ -69,6 +69,8 @@ test('buttons give press feedback while held (mouse and touch)', async ({ page, 
     await page.mouse.move(x, y)
     await page.mouse.down()
     await expect.poll(transform).not.toBe('none')
+    // release off the button so no click fires (a click would start the demo)
+    await page.mouse.move(5, 5)
     await page.mouse.up()
   }
   await expect.poll(transform).toBe('none')

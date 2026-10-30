@@ -1,7 +1,7 @@
 import { useDocumentTitle } from "../hooks/useDocumentTitle"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Spinner from '../components/Spinner'
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabase";
@@ -11,7 +11,10 @@ import HudMark from '../components/HudMark'
 
 const Login = () => {
   useDocumentTitle('Sign in')
-  const { user, signInAsGuest } = useAuth();
+  const { user, loading: authLoading, signInAsGuest } = useAuth();
+  const [params] = useSearchParams();
+  const autoDemo = params.get('demo') === '1';
+  const autoStarted = useRef(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const { toggleTheme } = useTheme();
   const [email, setEmail] = useState("");
@@ -29,7 +32,17 @@ const Login = () => {
     return () => window.removeEventListener('keydown', handler)
   }, [toggleTheme])
 
-  if (user) return <Navigate to="/" />;
+  // /login?demo=1 (and /demo) starts the guest session straight away, so a
+  // "try the demo" link elsewhere lands in the demo in one click. Signed-in
+  // visitors are left alone and just go to the feed.
+  useEffect(() => {
+    if (!autoDemo || authLoading || user || autoStarted.current) return
+    autoStarted.current = true
+    void handleDemo()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDemo, authLoading, user])
+
+  if (user) return <Navigate to="/" replace />;
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -47,14 +60,14 @@ const Login = () => {
     setLoading(false);
   };
 
-  const handleDemo = async () => {
+  async function handleDemo() {
     setDemoLoading(true);
     setError("");
     setSuccess("");
     const { error } = await signInAsGuest();
     if (error) setError(error);
     setDemoLoading(false);
-  };
+  }
 
   return (
     <div
