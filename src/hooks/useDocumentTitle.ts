@@ -22,6 +22,8 @@ export const useDocumentTitle = (title?: string, description?: string) => {
     setMeta('meta[property="og:description"]', desc)
     setMeta('meta[name="twitter:title"]', full)
     setMeta('meta[name="twitter:description"]', desc)
-    setMeta('meta[property="og:url"]', window.location.href)
+    const url = window.location.origin + window.location.pathname
+    setMeta('meta[property="og:url"]', url)
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', url)
   }, [title, description])
 }
