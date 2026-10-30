@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
 import toast from 'react-hot-toast'
 import Spinner from './Spinner'
+import { onLive, postTopic } from '../lib/realtime'
 
 interface Comment {
   id: string
@@ -31,10 +32,18 @@ const Comments = ({ postId }: { postId: string }) => {
         .eq('post_id', postId)
         .order('created_at', { ascending: true })
 
+      if (cancelled) return
       if (!error && data) setComments(data)
       setLoading(false)
     }
+    let cancelled = false
     fetchComments()
+    // Live: new, edited and deleted comments from anyone show up without a reload.
+    const stop = onLive(postTopic(postId), 'comments', () => { fetchComments() })
+    return () => {
+      cancelled = true
+      stop()
+    }
   }, [postId])
 
   const refreshComments = async () => {
@@ -98,8 +107,10 @@ const Comments = ({ postId }: { postId: string }) => {
 
   return (
     <div className="mt-4">
-      <div className="text-xs font-mono tracking-widest mb-4" style={{ color: 'var(--accent)' }}>
-        // comments ({comments.length})
+      <div className="flex items-center gap-2 text-xs font-mono tracking-widest mb-4" style={{ color: 'var(--accent)' }}>
+        <span>// comments ({comments.length})</span>
+        <span className="hud-live-dot" aria-hidden="true" title="Live" />
+        <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>live</span>
       </div>
 
       {user ? (
