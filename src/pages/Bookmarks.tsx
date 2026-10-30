@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { sanitizeHtml } from '../utils/sanitize'
 import { Link, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/useAuth'
@@ -177,7 +178,7 @@ const Bookmarks = () => {
                   <div
                     className="text-sm font-mono line-clamp-2 mb-4"
                     style={{ color: 'var(--text-secondary)' }}
-                    dangerouslySetInnerHTML={{ __html: post.content }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
                   />
 
                   <div className="flex items-center justify-between flex-wrap gap-2">

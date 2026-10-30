@@ -136,3 +136,15 @@ This repository is intended as a professional portfolio piece that highlights:
 ---
 
 _Created by Joshua Colon_
+
+## Guest demo mode
+
+The login screen has a **Try the demo** button that signs visitors in with Supabase anonymous auth.
+
+- Guests can read everything and create posts, comments, likes, follows and bookmarks within small caps (3 posts, 20 comments, 50 likes, length limits, no file uploads). RLS still stops them editing or deleting anyone else's content.
+- A **DEMO** badge shows in the navbar while you're signed in as a guest.
+- A `pg_cron` job (`cleanup-demo-users`, hourly) deletes anonymous users older than 24 hours. Their content goes with them through cascading foreign keys.
+- Sample posts are seeded by the `blog_team` account.
+- **Requires:** Supabase Dashboard → Authentication → Sign In / Providers → **Allow anonymous sign-ins**. Until that's on, the button shows a friendly "not switched on yet" message.
+
+Database changes live in `supabase/migrations/`.

@@ -7,7 +7,8 @@ import ThemeSelector from '../components/ThemeSelector'
 import { motion } from 'framer-motion'
 
 const Login = () => {
-  const { user } = useAuth();
+  const { user, signInAsGuest } = useAuth();
+  const [demoLoading, setDemoLoading] = useState(false);
   const { toggleTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,6 +41,15 @@ const Login = () => {
       if (error) setError(error.message);
     }
     setLoading(false);
+  };
+
+  const handleDemo = async () => {
+    setDemoLoading(true);
+    setError("");
+    setSuccess("");
+    const { error } = await signInAsGuest();
+    if (error) setError(error);
+    setDemoLoading(false);
   };
 
   return (
@@ -150,6 +160,28 @@ const Login = () => {
           >
             {loading ? '> loading...' : isSignUp ? '> CREATE ACCOUNT' : '> SIGN IN'}
           </button>
+
+          <div className="flex items-center gap-3 my-5">
+            <div className="h-px flex-1" style={{ backgroundColor: 'var(--border)' }} />
+            <span className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>or</span>
+            <div className="h-px flex-1" style={{ backgroundColor: 'var(--border)' }} />
+          </div>
+
+          <button
+            onClick={handleDemo}
+            disabled={demoLoading}
+            className="w-full py-2 rounded font-mono font-bold text-sm disabled:opacity-50 transition-all tracking-widest border active:scale-[0.98]"
+            style={{
+              borderColor: 'var(--accent)',
+              color: 'var(--accent)',
+              backgroundColor: 'var(--bg-tertiary)',
+            }}
+          >
+            {demoLoading ? '> starting demo...' : '✦ TRY THE DEMO'}
+          </button>
+          <p className="text-center text-[11px] font-mono mt-2" style={{ color: 'var(--text-secondary)' }}>
+            // no sign-up needed · guest data clears after a day
+          </p>
 
           <p className="text-center text-xs font-mono mt-4" style={{ color: 'var(--text-secondary)' }}>
             {isSignUp ? '// already have an account?' : '// no account yet?'}

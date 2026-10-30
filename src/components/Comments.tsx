@@ -12,7 +12,7 @@ interface Comment {
 }
 
 const Comments = ({ postId }: { postId: string }) => {
-  const { user } = useAuth()
+  const { user, isDemo } = useAuth()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(true)
@@ -54,7 +54,7 @@ const Comments = ({ postId }: { postId: string }) => {
       refreshComments()
       toast.success('Comment posted!')
   } else {
-      toast.error('Failed to post comment')
+      toast.error(error.message.startsWith('Demo limit') ? error.message : 'Failed to post comment')
   }
     setSubmitting(false)
 }
@@ -83,6 +83,7 @@ const Comments = ({ postId }: { postId: string }) => {
               color: 'var(--text-primary)',
             }}
             placeholder="// write a comment..."
+            maxLength={isDemo ? 500 : undefined}
             rows={3}
           />
           <div className="flex justify-end mt-2">
