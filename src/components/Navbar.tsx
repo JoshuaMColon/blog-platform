@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import ThemeSelector from './ThemeSelector'
+import NotificationBell from './NotificationBell'
 
 const NAV_LINKS = [
   { to: '/', label: 'feed', end: true },
@@ -76,6 +77,7 @@ const Navbar = () => {
 
           {user ? (
             <>
+              <NotificationBell />
               <Link to="/create" className="hud-btn hud-btn-primary">
                 <span aria-hidden="true">+</span>
                 <span className="hidden sm:inline">new_post</span>
@@ -123,6 +125,11 @@ const Navbar = () => {
                 </NavLink>
               </li>
             ))}
+            <li>
+              <NavLink to="/notifications" className="hud-navlink hud-navlink-block">
+                notifications
+              </NavLink>
+            </li>
             <li>
               <NavLink to={`/profile/${user.id}`} className="hud-navlink hud-navlink-block">
                 profile
