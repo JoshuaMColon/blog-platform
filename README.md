@@ -165,14 +165,14 @@ flowchart TD
 
 Lighthouse (lab run, mobile uses the default Moto G Power throttling, desktop the desktop preset) on the live site. "Home" is `/`, which redirects logged-out visitors to `/login`.
 
-| Page | Device  | Performance | Accessibility | Best Practices | SEO |
-| ---- | ------- | ----------- | ------------- | -------------- | --- |
-| Home | Mobile  | 95          | 91            | 96             | 82  |
-| Home | Desktop | 100         | 91            | 100            | 82  |
-| Post | Mobile  | 80          | 85            | 100            | 82  |
-| Post | Desktop | 99          | 85            | 100            | 82  |
+| Page | Device  | Performance (before → after) | Accessibility | Best Practices | SEO        |
+| ---- | ------- | ---------------------------- | ------------- | -------------- | ---------- |
+| Home | Mobile  | 95 → 88                      | 91 → 94       | 96 → 96        | 82 → 100   |
+| Home | Desktop | 100 → 99                     | 91 → 94       | 100 → 100      | 82 → 100   |
+| Post | Mobile  | 80 → 84                      | 85 → 90       | 100 → 100      | 82 → 100   |
+| Post | Desktop | 99 → 90                      | 85 → 90       | 100 → 100      | 82 → 100   |
 
-_Scores from 30 Oct 2026, before the perf/SEO pass. Lab scores vary from run to run by a few points._
+_30 Oct 2026. "Before" is a single run; "after" is the median of three runs after the perf/SEO pass. Lab performance scores on this setup swing by 10+ points between runs (for example, post desktop scored 89, 99 and 90), so treat performance differences of that size as noise. The accessibility, SEO and best-practices changes are stable. The remaining accessibility misses are colour contrast and links distinguished only by colour, both theme decisions that were left as is on purpose._
 
 ---
 
