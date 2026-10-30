@@ -729,3 +729,112 @@ html.dark .hud-nav {
 .hud-cover-preview .hud-chip { background: color-mix(in srgb, var(--bg-secondary) 85%, transparent); backdrop-filter: blur(4px); }
 /* runtime class from ProseMirror */
 .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--accent); box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.5); }
+
+/* ---------- Notifications ---------- */
+@layer components {
+.hud-bell { position: relative; }
+.hud-bell-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--bg-primary);
+  background: var(--accent-2);
+  box-shadow: 0 0 8px rgba(var(--accent-2-rgb), 0.8);
+  clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+  animation: hud-badge-in 0.25s ease-out;
+}
+@keyframes hud-badge-in { from { transform: scale(0.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .hud-bell-badge { animation: none; } }
+
+.hud-notif-list { max-height: min(60vh, 420px); overflow-y: auto; }
+.hud-notif-empty {
+  padding: 16px 8px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.hud-notif {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  color: var(--text-primary);
+  transition: background-color 0.15s;
+}
+.hud-notif:last-child { border-bottom: 0; }
+.hud-notif:hover { background: var(--bg-tertiary); }
+.hud-notif[data-unread] { box-shadow: inset 2px 0 0 var(--accent); background: rgba(var(--accent-rgb), 0.05); }
+.hud-notif-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--accent);
+  border: 1px solid rgba(var(--accent-rgb), 0.5);
+}
+.hud-notif-icon[data-type='like'] { color: var(--accent-2); border-color: rgba(var(--accent-2-rgb), 0.5); }
+.hud-notif-text { display: block; font-size: 13px; line-height: 1.4; }
+.hud-notif-text strong { color: var(--accent); font-weight: 600; }
+.hud-notif-text em { font-style: normal; color: var(--text-primary); }
+.hud-notif-snippet {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+.hud-notif-time {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+.hud-notif[data-compact] .hud-notif-text { font-size: 12px; }
+.hud-notif-dot {
+  flex-shrink: 0;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+.hud-segment { display: inline-flex; gap: 4px; }
+}
+/* .hud-panel / .hud-chip are unlayered (they set position/display), so these must be too. */
+.hud-panel.hud-notif-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: min(360px, calc(100vw - 24px));
+  padding: 8px 6px 6px;
+}
+@media (max-width: 640px) {
+  .hud-panel.hud-notif-menu { position: fixed; left: 12px; right: 12px; top: 60px; width: auto; margin-top: 0; }
+}
+.hud-chip[aria-pressed='true'] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+.hud-chip:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.hud-chip:disabled:hover { color: var(--text-secondary); border-color: var(--border); }

@@ -25,7 +25,7 @@ const BookmarkButton = ({ postId, onRemove }: BookmarkButtonProps) => {
         .select('id')
         .eq('user_id', user.id)
         .eq('post_id', postId)
-        .single()
+        .maybeSingle()
 
       setBookmarked(!!data)
     }

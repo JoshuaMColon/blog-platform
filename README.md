@@ -16,6 +16,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 - **Posts**: create, edit, delete, draft or publish, with tags, a cover image and rich text (TipTap)
 - **Image uploads**: cover images and inline editor images (button, paste or drop), resized and compressed to WebP in the browser, stored in Supabase Storage under each user's own folder
 - **Social**: comments (edit and delete your own), likes, follows, bookmarks and a following feed
+- **Notifications**: get notified when someone follows you, likes your post or comments on it. A navbar bell shows a live unread badge (private Realtime channel), with a dropdown, a full `/notifications` page and mark-as-read
 - **Live updates**: comments and like counts update in real time, the feed shows an "N new posts" pill, and post pages show how many people are reading right now (Supabase Realtime broadcast + presence)
 - **Discovery**: search by title or content, and filter by tag
 - **Themes**: five colour themes with a light/dark toggle
@@ -108,6 +109,7 @@ A full-stack blogging app built with React 19, TypeScript, Tailwind CSS and Supa
 
 - Leave comments on posts, and edit or delete your own
 - Like or unlike posts, follow authors and bookmark posts
+- Get follow / like / comment notifications in the navbar bell and on `/notifications`
 - Pick one of five themes and toggle light/dark
 
 ---
@@ -119,7 +121,7 @@ src/
 ├── components/        # Reusable UI components and feature widgets
 ├── context/           # Global auth and theme providers
 ├── hooks/             # useDocumentTitle (per-page title/meta)
-├── lib/               # Supabase client, shared Realtime channels, image upload helpers
+├── lib/               # Supabase client, shared Realtime channels, image upload helpers, notifications store
 ├── pages/             # Route-based page components (heavy ones lazy-loaded)
 ├── utils/             # sanitising, slugs, reading time, press feedback
 └── App.tsx            # Application routes and providers
@@ -194,6 +196,39 @@ sequenceDiagram
 ```
 
 `src/lib/realtime.ts` keeps **one ref-counted channel per topic** (the like button, comments and presence counter on a post page share it), and every component unsubscribes on unmount; the socket channel is removed shortly after its last user goes away.
+
+---
+
+## Notifications
+
+`public.notifications` holds one row per event for the **recipient** (`user_id`), written only by `security definer` triggers in the non-exposed `private` schema:
+
+| Source table | Trigger | Notification | Undo |
+| --- | --- | --- | --- |
+| `follows` | `follows_notify` | `follow` → `/profile/<actor>` | unfollow deletes it |
+| `likes` | `likes_notify` | `like` → `/post/<slug>` | unlike deletes it |
+| `comments` | `comments_notify` | `comment` → `/post/<slug>#comments` | deleting the comment cascades |
+
+- **Never yourself:** triggers skip self-actions and a `check (user_id <> actor_id)` backs that up. Likes and follows are de-duplicated with a unique index, so liking, unliking and liking again leaves one notification.
+- **RLS:** clients can only `select`/`delete` their own rows and only `update (read_at)` (column-level grant). There is no insert grant at all. Rows older than 90 days are pruned by `pg_cron`.
+- **Live badge:** a statement-level trigger sends one tiny `{op}` ping per affected recipient with `realtime.send(..., 'user:<uid>', private => true)`. An RLS policy on `realtime.messages` only lets `auth.uid()` join its own `user:<uid>` topic, and the client then re-reads its notifications through RLS, so the ping carries no data.
+
+```mermaid
+sequenceDiagram
+    participant B as User B
+    participant DB as Postgres
+    participant RT as Supabase Realtime (private)
+    participant A as User A (bell)
+    A->>RT: join user:<A> (RLS on realtime.messages)
+    B->>DB: insert like on A's post
+    DB->>DB: likes_notify → insert notifications (user_id = A)
+    DB->>RT: statement trigger: realtime.send('notifications', user:<A>, private)
+    RT-->>A: ping
+    A->>DB: select notifications (RLS: own rows) → badge + dropdown
+    A->>DB: update read_at (mark as read) → ping → other tabs update
+```
+
+`src/lib/notifications.ts` keeps one shared store per signed-in user (read through `useSyncExternalStore`), so the bell, the dropdown and the page share one channel and one unread count across components.
 
 ---
 

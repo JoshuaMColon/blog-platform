@@ -24,7 +24,7 @@ const FollowButton = ({ profileId }: FollowButtonProps) => {
         .select('id')
         .eq('follower_id', user.id)
         .eq('following_id', profileId)
-        .single()
+        .maybeSingle()
 
       setFollowing(!!data)
     }

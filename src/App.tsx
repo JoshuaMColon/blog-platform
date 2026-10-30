@@ -20,6 +20,7 @@ const CreatePost = lazy(() => import('./pages/CreatePost'))
 const EditPost = lazy(() => import('./pages/EditPost'))
 const MyPosts = lazy(() => import('./pages/MyPosts'))
 const UserProfile = lazy(() => import('./pages/UserProfile'))
+const Notifications = lazy(() => import('./pages/Notifications'))
 
 function App() {
   const location = useLocation()
@@ -63,6 +64,9 @@ function App() {
             } />
             <Route path="/my-posts" element={
               <ProtectedRoute><MyPosts /></ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute><Notifications /></ProtectedRoute>
             } />
             <Route path="/profile/:id" element={<UserProfile />} />
             <Route path="*" element={<NotFound />} />

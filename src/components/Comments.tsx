@@ -46,6 +46,13 @@ const Comments = ({ postId }: { postId: string }) => {
     }
   }, [postId])
 
+  // Arriving from a "commented on your post" notification: scroll to comments.
+  useEffect(() => {
+    if (!loading && window.location.hash === '#comments') {
+      document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [loading])
+
   const refreshComments = async () => {
     const { data, error } = await supabase
       .from('comments')
@@ -106,7 +113,7 @@ const Comments = ({ postId }: { postId: string }) => {
   }
 
   return (
-    <div className="mt-4">
+    <div className="mt-4 scroll-mt-20" id="comments">
       <div className="flex items-center gap-2 text-xs font-mono tracking-widest mb-4" style={{ color: 'var(--accent)' }}>
         <span>// comments ({comments.length})</span>
         <span className="hud-live-dot" aria-hidden="true" title="Live" />
