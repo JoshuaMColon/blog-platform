@@ -47,4 +47,6 @@ test('guest sees the bell, an empty inbox and the notifications page, or skips w
   await page.getByRole('link', { name: /view_all/ }).click()
   await expect(page).toHaveURL(/\/notifications$/)
   await expect(page.getByRole('heading', { name: 'notifications' })).toBeVisible()
+  // the page keeps the navbar (bell included) so you can navigate away
+  await expect(page.getByTestId('notification-bell')).toBeVisible()
 })
