@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './guest-cleanup'
 import { loadEnv } from 'vite'
 
 const env = { ...loadEnv('production', process.cwd(), 'VITE_'), ...process.env }

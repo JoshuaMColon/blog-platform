@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { test, expect } from './guest-cleanup'
 import { loadEnv } from 'vite'
 
 const env = { ...loadEnv('production', process.cwd(), 'VITE_'), ...process.env }
