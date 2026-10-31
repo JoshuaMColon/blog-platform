@@ -45,6 +45,7 @@ const NotificationBell = () => {
         aria-haspopup="true"
         aria-expanded={open}
         aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
+        data-tip="Notifications"
         data-testid="notification-bell"
         onClick={() => setOpenPath(open ? null : pathname)}
       >

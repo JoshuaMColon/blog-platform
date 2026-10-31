@@ -36,7 +36,7 @@ const ThemeSelector = ({ compact = false }: { compact?: boolean }) => {
         onClick={toggleDarkMode}
         className="hud-chip"
         aria-label={darkMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        title={darkMode === 'dark' ? 'Light mode' : 'Dark mode'}
+        data-tip={darkMode === 'dark' ? 'Light mode' : 'Dark mode'}
       >
         <span aria-hidden="true">{darkMode === 'dark' ? '☀' : '☾'}</span>
         {!compact && <span className="hidden lg:inline">{darkMode === 'dark' ? 'LIGHT' : 'DARK'}</span>}
