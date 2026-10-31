@@ -27,7 +27,7 @@ A full-stack blogging app with a cybernetic HUD look, built with React 19, TypeS
 - **Discovery**: ranked Postgres full-text search over titles, tags and content (prefix matching as you type, `"phrases"` and `-exclusions`, highlighted snippets, covers on results), plus tag filters
 - **AI**: a **TL;DR** panel on every post and **Related posts** found by meaning (pgvector + the built-in `gte-small` embedding model). Both are computed by Edge Functions on publish/update; summaries use an LLM when `OPENAI_API_KEY` is set and a local extractive summarizer otherwise
 - **Cyber HUD design**: a dark grid-and-scanline backdrop, clipped-corner glowing panels, a restrained glitch on the logo and hero, Orbitron / JetBrains Mono / Inter type, and a calm solid reading surface for post text. Four palettes (**Neon Grid** by default, **Acid**, **Ultraviolet**, **Ghost**), each with a dark and a light variant whose text/accent pairs are checked against WCAG AA. On phones the navbar collapses into a menu (Escape closes it), and `prefers-reduced-motion` turns off glitch, flicker, pulse and scale effects
-- **Feel**: subtle press feedback on every control (mouse and touch), spinners on async actions, and optimistic likes that roll back if the write fails
+- **Feel**: subtle press feedback on every control (mouse and touch), spinners on async actions, and optimistic likes that roll back if the write fails. Icon-only buttons show their label in a tooltip after a short hover or on keyboard focus. Tooltips are announced to screen readers (`role="tooltip"` + `aria-describedby`), close on Esc, and never pop up from a tap
 - **SEO**: per-page titles, meta description, Open Graph/Twitter cards, `robots.txt` and a generated `sitemap.xml`
 
 ---
@@ -98,7 +98,7 @@ A full-stack blogging app with a cybernetic HUD look, built with React 19, TypeS
 
    Set `BASE_URL=https://your-preview.vercel.app` to run the same tests against a deployed preview.
 
-   The Playwright suite (`e2e/`) covers routing and 404s, SEO files, press feedback, the guest demo and `/demo` link, live "reading now" presence, image upload RLS and compression, notifications access, search ranking and highlighting, and the AI tables, RPCs and worker auth. Tests that need a guest session skip cleanly while anonymous sign-ins are off. GitHub Actions (`.github/workflows/ci.yml`) runs typecheck, lint, build and the full suite on every push and pull request.
+   The Playwright suite (`e2e/`) covers routing and 404s, SEO files, press feedback, the guest demo and `/demo` link, live "reading now" presence, image upload RLS and compression, notifications access, search ranking and highlighting, and the AI tables, RPCs and worker auth. Tests that need a guest session skip cleanly while anonymous sign-ins are off, and clean up after themselves: a shared fixture (`e2e/guest-cleanup.ts`) deletes the guest's uploaded images through the Storage API and then removes the guest account with `end_guest_session()`, so CI leaves no users or files behind. GitHub Actions (`.github/workflows/ci.yml`) runs typecheck, lint, build and the full suite on every push and pull request.
 
 ---
 
@@ -152,6 +152,7 @@ Linking to **`/demo`** (an alias for `/login?demo=1`) starts the guest session s
 - A **DEMO** badge shows in the navbar while you're signed in as a guest.
 - A `pg_cron` job (`cleanup-demo-users`, hourly) deletes anonymous users older than 24 hours. Their content goes with them through cascading foreign keys.
 - A second job (`cleanup-demo-files`, hourly) calls an Edge Function that deletes guests' uploaded images (and any orphaned files) through the Storage API.
+- `end_guest_session()` lets a guest session delete its own anonymous account (and, via cascades, its content) right away. It refuses to touch regular accounts.
 - Sample posts are seeded by the `blog_team` account.
 - **Requires:** Supabase Dashboard → Authentication → Sign In / Providers → **Allow anonymous sign-ins**. Until that's on, the button shows a friendly "not switched on yet" message.
 

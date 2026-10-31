@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { test, expect } from './guest-cleanup'
 
 const POST_SLUG = 'welcome-to-the-blog-platform-demo'
 

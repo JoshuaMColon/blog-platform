@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './guest-cleanup'
 
 // The portfolio links to /demo: one click should land in the guest demo.
 test('/demo starts the guest session and lands on the feed, or explains while anonymous sign-ins are off', async ({ page }) => {
