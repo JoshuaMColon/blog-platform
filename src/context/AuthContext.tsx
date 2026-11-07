@@ -24,12 +24,18 @@ export const AuthContext = createContext<AuthContextType>({
 export const DEMO_DISABLED_MESSAGE =
   "The guest demo isn't switched on yet. Please check back soon, or create a free account in a few seconds.";
 
+// The session lives here so every page reads the same user. I restore what
+// supabase-js stored locally, then keep it current from onAuthStateChange
+// (sign-in, sign-out, token refresh, including another tab). `loading` stays
+// true until that first read resolves, so a refresh doesn't look logged out.
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // getSession() reads the stored session. It does not ask Auth to
+    // re-check the token; the listener below is what tracks a real change.
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -47,6 +53,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Drops this browser's session. The listener above clears `user`, and the
+  // route guards send them back to /login.
   const signOut = async () => {
     await supabase.auth.signOut();
     toast.success('Signed out!')

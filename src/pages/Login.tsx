@@ -9,6 +9,9 @@ import ThemeSelector from '../components/ThemeSelector'
 import { motion } from 'framer-motion'
 import HudMark from '../components/HudMark'
 
+// Email and password, plus the guest demo, on one screen. I don't navigate
+// after a successful password sign-in: AuthProvider hears the new session
+// and the redirect below sends them to the feed.
 const Login = () => {
   useDocumentTitle('Sign in')
   const { user, loading: authLoading, signInAsGuest } = useAuth();
@@ -32,9 +35,11 @@ const Login = () => {
     return () => window.removeEventListener('keydown', handler)
   }, [toggleTheme])
 
-  // /login?demo=1 (and /demo) starts the guest session straight away, so a
-  // "try the demo" link elsewhere lands in the demo in one click. Signed-in
-  // visitors are left alone and just go to the feed.
+  // /login?demo=1 (the /demo route redirects here) starts a guest session
+  // on its own, so a link from the portfolio doesn't need a second click.
+  // The ref holds across the loading flip, otherwise this effect would call
+  // signInAnonymously again before the user object shows up. Someone who is
+  // already signed in hits `user` and falls through to the feed redirect.
   useEffect(() => {
     if (!autoDemo || authLoading || user || autoStarted.current) return
     autoStarted.current = true
@@ -50,6 +55,9 @@ const Login = () => {
     setSuccess("");
 
     if (isSignUp) {
+      // When email confirmation is on, Supabase returns no session and I
+      // leave them on this screen with the success note. When it is off, a
+      // session comes back and the redirect above takes over.
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) setError(error.message);
       else setSuccess("Account created! You can now sign in.");
