@@ -10,6 +10,8 @@ interface BookmarkButtonProps {
   onRemove?: () => void
 }
 
+// Bookmarks are private: the select policy is auth.uid() = user_id. Insert
+// and delete send that same id, and RLS rejects a row filed under anyone else.
 const BookmarkButton = ({ postId, onRemove }: BookmarkButtonProps) => {
   const { user } = useAuth()
   const navigate = useNavigate()

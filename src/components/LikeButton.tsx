@@ -9,6 +9,11 @@ interface LikeButtonProps {
   postId: string
 }
 
+// A like is a row in `likes` (post_id, user_id). I flip the heart before
+// the request returns and put it back if the insert or delete fails,
+// including when a guest hits the demo cap. `pending` also ignores live
+// events mid-write, so a broadcast doesn't overwrite the optimistic count
+// with a read that hasn't caught up.
 const LikeButton = ({ postId }: LikeButtonProps) => {
   const { user } = useAuth()
   const [liked, setLiked] = useState(false)
@@ -30,8 +35,9 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
       }
     }
     fetchLikes()
-    // Live: the likes trigger broadcasts on post:<id>; re-read so both the
-    // count and this user's own liked state stay correct across tabs.
+    // Likes broadcast { count }. A signed-out viewer can apply that directly.
+    // A signed-in one re-reads, because the payload doesn't say whether
+    // this user is in the set.
     const stop = onLive(postTopic(postId), 'likes', payload => {
       if (pending.current) return
       if (typeof payload.count === 'number' && !user) {
@@ -50,7 +56,6 @@ const LikeButton = ({ postId }: LikeButtonProps) => {
     if (!user || pending.current) return
     pending.current = true
 
-    // Optimistic update: flip immediately, roll back if the request fails.
     const wasLiked = liked
     setLiked(!wasLiked)
     setLikeCount(c => c + (wasLiked ? -1 : 1))
