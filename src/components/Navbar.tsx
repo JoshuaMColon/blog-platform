@@ -37,6 +37,8 @@ const Navbar = () => {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
+  // Guests have no email. The DEMO badge is a label; the caps live in
+  // enforce_demo_limits(), not in this component.
   const userLabel = isDemo ? 'guest' : user?.email ?? ''
 
   return (

@@ -60,6 +60,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     toast.success('Signed out!')
   };
 
+  // Anonymous auth, not a shared demo password. Each visitor gets their own
+  // auth.users row, and the hourly cleanup deletes it after a day.
   const signInAsGuest = async () => {
     const { error } = await supabase.auth.signInAnonymously();
     if (!error) {
@@ -67,12 +69,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { error: null };
     }
     const msg = error.message.toLowerCase();
+    // The code is the stable check. The message match covers the wording
+    // Supabase returns when anonymous sign-ins are simply switched off.
     if (error.code === 'anonymous_provider_disabled' || msg.includes('anonymous') && (msg.includes('disabled') || msg.includes('not enabled'))) {
       return { error: DEMO_DISABLED_MESSAGE };
     }
     return { error: `Couldn't start the demo: ${error.message}` };
   };
 
+  // user.is_anonymous is set by signInAnonymously(). The badge and the
+  // guest textarea limits read it. The database reads the same claim off
+  // the JWT in is_demo_user(), so hiding the badge doesn't lift the caps.
   const isDemo = Boolean(user?.is_anonymous);
 
   return (

@@ -1,10 +1,11 @@
--- Guest demo mode, part 2: sample content so the demo never looks empty, and an
--- hourly pg_cron job that removes anonymous (demo) users older than a day.
--- Their posts, comments, likes, follows and bookmarks go with them via the
--- existing ON DELETE CASCADE foreign keys. Idempotent and additive.
+-- Sample posts so a fresh guest doesn't land on an empty feed, and an
+-- hourly job that deletes anonymous users older than a day. Their posts,
+-- comments, likes, follows and bookmarks go with them through the existing
+-- ON DELETE CASCADE keys. Idempotent: re-running inserts only missing rows.
 
--- 1. A non-login "Blog Platform Team" author for the sample posts.
---    (No password is set, so nobody can sign in as this account.)
+-- 1. A non-login author for the samples. Empty encrypted_password means
+--    nobody can sign in as blog_team, and is_anonymous = false means the
+--    sweep below will not delete them.
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at, is_anonymous
@@ -52,7 +53,8 @@ from (values
 ) as v(title, slug, content, tags, age)
 where not exists (select 1 from public.posts p where p.slug = v.slug);
 
--- 3. Cleanup of old demo users.
+-- 3. Hourly sweep. security definer so it can delete from auth.users.
+--    EXECUTE is revoked from the API roles; pg_cron runs it as the owner.
 create extension if not exists pg_cron;
 
 create or replace function public.cleanup_demo_users()
