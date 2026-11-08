@@ -1,8 +1,12 @@
 import DOMPurify from 'dompurify'
 import { isOwnStorageUrl } from '../lib/images'
 
-// Images in posts may only come from this project's Storage buckets, so posts
-// cannot embed tracking pixels or hot-link arbitrary hosts.
+// Post HTML is rendered with dangerouslySetInnerHTML, so it has to be
+// cleaned first. DOMPurify's HTML profile drops scripts and event
+// handlers. Images are a separate hole: I only keep an <img> whose src is
+// this project's public Storage buckets, and I strip srcset so a cleaned
+// src can't be paired with a remote candidate. That blocks tracking pixels
+// and hotlinks, including from a guest post.
 DOMPurify.addHook('afterSanitizeAttributes', node => {
   if (node.nodeName === 'IMG') {
     const src = node.getAttribute('src') ?? ''
@@ -16,7 +20,5 @@ DOMPurify.addHook('afterSanitizeAttributes', node => {
   }
 })
 
-// Post content is user-written HTML from the rich-text editor. Sanitize it
-// before rendering so nobody (including demo guests) can inject scripts.
 export const sanitizeHtml = (html: string) =>
   DOMPurify.sanitize(html ?? '', { USE_PROFILES: { html: true } })

@@ -2,10 +2,11 @@ import { useEffect, useSyncExternalStore } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
-// Notifications are written by database triggers (follow, like, comment) and
-// are only readable by their recipient (RLS). The database pings a private
-// Realtime channel `user:<uid>` whenever the recipient's rows change; the
-// ping carries no content, we simply re-read through RLS.
+// Rows are written by triggers (follow, like, comment), and RLS lets a
+// user read only their own. The database pings a private channel
+// `user:<uid>` when those rows change. The ping carries no content. I
+// re-read through RLS. The bell, the dropdown and the page share this
+// store, so they share one channel and one unread count.
 
 export type NotificationType = 'follow' | 'like' | 'comment'
 
@@ -89,7 +90,8 @@ const start = (uid: string) => {
   const ch = supabase.channel(`user:${uid}`, { config: { private: true } })
   ch.on('broadcast', { event: 'notifications' }, scheduleRefresh)
   channel = ch
-  // Make sure the socket carries the user's JWT before joining a private channel.
+  // Private channels check RLS on realtime.messages, which needs the JWT
+  // on the socket. setAuth() puts it there before I subscribe.
   void supabase.realtime.setAuth().finally(() => {
     if (channel === ch) ch.subscribe()
   })
