@@ -1,9 +1,9 @@
--- Notifications: someone followed you, liked your post or commented on it.
--- Rows are written only by SECURITY DEFINER triggers (clients cannot insert),
--- you never get notified about your own actions, and RLS lets each user read,
--- mark-read and delete only their own rows. A private Realtime channel
--- (user:<uid>) pings the recipient so the navbar badge updates live; the
--- message carries no content, the client re-reads through RLS.
+-- Notifications: someone followed you, liked your post, or commented on it.
+-- I never let the client insert. security definer triggers in the private
+-- schema write the row, and they skip self-actions. RLS lets each user
+-- read, mark-read and delete only their own rows. A private channel
+-- (user:<uid>) pings the recipient; the ping carries no content, and the
+-- client re-reads through RLS.
 
 create table if not exists public.notifications (
   id          uuid primary key default gen_random_uuid(),
@@ -33,9 +33,12 @@ create index if not exists notifications_comment_id_idx on public.notifications 
 
 alter table public.notifications enable row level security;
 
+-- The update grant is the column, not just the policy. A client can change
+-- read_at and nothing else, so a patch can't retarget user_id or actor_id.
+-- The policies below still require the row to be theirs.
 revoke all on public.notifications from anon, authenticated;
 grant select, delete on public.notifications to authenticated;
-grant update (read_at) on public.notifications to authenticated;  -- only read_at is writable
+grant update (read_at) on public.notifications to authenticated;
 
 drop policy if exists "Users can read their own notifications" on public.notifications;
 create policy "Users can read their own notifications"

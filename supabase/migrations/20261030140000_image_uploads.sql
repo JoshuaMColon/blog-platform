@@ -16,9 +16,13 @@ on conflict (id) do update
       file_size_limit = excluded.file_size_limit,
       allowed_mime_types = excluded.allowed_mime_types;
 
--- 2) Policies. Public buckets serve /object/public/* without RLS, so no
---    broad SELECT policy is needed (it would only let clients list everyone's
---    files). Users may only see / write / delete inside "<their uid>/".
+-- 2) Policies. A public bucket serves /object/public/* without consulting
+--    RLS, so I don't add a broad SELECT. That policy would only matter for
+--    listing, and listing everyone's files is not something I want. Insert,
+--    update, delete and list are limited to a first folder equal to
+--    auth.uid(). The client uploads to `<uid>/<uuid>.ext`, which is what
+--    makes the check pass. (select auth.uid()) is the same once-per-statement
+--    wrap as the table policies.
 drop policy if exists "Anyone can view cover images" on storage.objects;
 drop policy if exists "Authenticated users can upload cover images" on storage.objects;
 drop policy if exists "Users can update their own cover images" on storage.objects;
@@ -47,9 +51,11 @@ create policy "Users can delete their own images" on storage.objects
   using (bucket_id in ('covers','post-images')
          and (storage.foldername(name))[1] = (select auth.uid())::text);
 
--- Guests: at most 5 stored images in total. Counted by a security-definer
--- helper (a policy that queries storage.objects itself recurses). It lives in
--- the non-exposed "private" schema, so it is not callable through the API.
+-- Replaces "Demo users cannot upload files" from the guest migration.
+-- Still restrictive, so it ANDs with the folder policy above. A policy that
+-- counted storage.objects directly would recurse into itself, so the count
+-- is a security definer function in private, which the API doesn't expose.
+-- Five images, across both buckets.
 create or replace function private.my_image_count()
 returns integer
 language sql
@@ -94,6 +100,9 @@ begin
     if coalesce(array_length(new.tags, 1), 0) > 5 then
       raise exception 'Demo limit: at most 5 tags per post.' using errcode = 'P0001';
     end if;
+    -- A cover is allowed now, but only from this guest's own folder in the
+    -- covers bucket. Storage RLS already stops them uploading elsewhere;
+    -- this stops them pasting someone else's public URL onto the post.
     if coalesce(new.cover_image, '') <> ''
        and new.cover_image not like
          'https://ghhrqiwrnquyvgpnhhxd.supabase.co/storage/v1/object/public/covers/' || uid::text || '/%' then
@@ -168,8 +177,11 @@ $$;
 revoke execute on function public.internal_token_ok(text) from public, anon, authenticated;
 grant execute on function public.internal_token_ok(text) to service_role;
 
--- Files to sweep: anything owned by a guest older than 23h (users themselves
--- are deleted at 24h) and anything whose owner no longer exists.
+-- Files to sweep: a guest older than 23h (the user row itself goes at 24h,
+-- and this job is scheduled earlier so the objects are gone first) and
+-- anything whose owner no longer exists. service_role only. The edge
+-- function deletes through the Storage API, because a direct delete from
+-- storage.objects is blocked.
 create or replace function public.demo_files_to_purge(max_rows int default 500)
 returns table (bucket_id text, name text)
 language sql

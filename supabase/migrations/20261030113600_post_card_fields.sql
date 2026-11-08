@@ -1,5 +1,6 @@
--- Lightweight card fields so list views don't download the full post HTML.
--- Both columns are generated from content, so they can never drift out of sync.
+-- List views were selecting the whole HTML body to show a snippet and a
+-- reading time. Both are generated from content, stored, so they can't
+-- drift, and the client asks for these columns instead of content.
 
 create or replace function public.html_to_text(html text)
 returns text
