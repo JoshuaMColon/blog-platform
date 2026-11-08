@@ -1,14 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+// Titles become URL slugs: lowercase, punctuation dropped, separators
+// collapsed to a single hyphen.
 export const slugify = (text: string): string => {
   return text
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, "") // Remove special characters
-    .replace(/[\s_-]+/g, "-") // Replace spaces with hyphens
-    .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 };
 
+// Check posts.slug until one is free. excludeId lets an edit keep the slug
+// it already has instead of appending -1 to itself.
 export const generateUniqueSlug = async (
   title: string,
   supabase: SupabaseClient,

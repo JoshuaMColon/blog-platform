@@ -10,6 +10,9 @@ import toast from 'react-hot-toast'
 import CoverImageUpload from '../components/CoverImageUpload'
 import { generateUniqueSlug } from '../utils/slugify'
 
+// One insert. `published` is the only difference between a draft and a live
+// post. I send the signed-in id as user_id; the "Users can create posts"
+// policy rejects the row if that id isn't auth.uid().
 const CreatePost = () => {
   useDocumentTitle('New post')
   const { user, loading: authLoading } = useAuth()
@@ -37,6 +40,8 @@ const CreatePost = () => {
     setError('')
 
     const tagsArray = tags.split(',').map(t => t.trim()).filter(Boolean)
+    // The title becomes the URL. Probe until the slug is free so two posts
+    // with the same title don't collide.
     const slug = await generateUniqueSlug(title, supabase)
 
     const { error } = await supabase.from('posts').insert({

@@ -21,6 +21,10 @@ interface Post {
   updated_at: string;
 }
 
+// My rows, drafts included. The select policy lets the author read
+// unpublished posts and hides them from everyone else, so this query
+// doesn't filter on published. Delete and the publish toggle rely on the
+// same ownership policies (auth.uid() = user_id).
 const MyPosts = () => {
   useDocumentTitle('My posts')
   const { user } = useAuth();
