@@ -33,6 +33,10 @@ interface Post {
   cover_image: string | null
 }
 
+// The profiles row already exists: handle_new_user() inserted it at sign-up.
+// This page reads it (profiles are public) and, for the owner, updates the
+// bio. I write `.eq('id', user.id)`. The update policy is the same check,
+// so a forged id does not land.
 const UserProfile = () => {
   const { id } = useParams()
   const { user } = useAuth()
@@ -46,6 +50,7 @@ const UserProfile = () => {
   const [followerCount, setFollowerCount] = useState(0)
   const [followingCount, setFollowingCount] = useState(0)
 
+  // Hides the bio editor. The policy is what actually locks the row.
   const isOwner = user?.id === id
   useDocumentTitle(profile ? `@${profile.username}` : 'Profile', profile?.bio || undefined)
 

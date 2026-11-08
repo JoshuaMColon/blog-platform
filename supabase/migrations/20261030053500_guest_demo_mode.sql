@@ -12,8 +12,12 @@ as $$
   select coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false);
 $$;
 
--- 2. Signup trigger: anonymous users have no email, and profiles.username is
---    NOT NULL + UNIQUE, so give guests a generated handle.
+-- 2. Profiles are not inserted from the client. This runs after a row lands
+--    in auth.users, for an email sign-up or an anonymous guest. Guests have
+--    no email, and username is NOT NULL and UNIQUE, so I mint
+--    guest_<8 hex chars> from the id. security definer lets the insert
+--    through before that user has a session, and an empty search_path keeps
+--    the function from resolving a shadowed profiles table.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
