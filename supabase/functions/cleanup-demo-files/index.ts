@@ -1,8 +1,8 @@
-// Scheduled sweep (pg_cron -> pg_net, hourly): removes images uploaded by
-// demo guests (and orphaned files) through the Storage API, since direct
-// deletes from storage.objects are blocked. Authenticated by an internal token
-// kept in Vault; uses the auto-injected service-role key, which never leaves
-// the function.
+// Hourly sweep (pg_cron -> pg_net). Direct deletes from storage.objects are
+// blocked, so I remove guest images and orphans through the Storage API.
+// The caller proves itself with the Vault internal token (checked in
+// Postgres, not compared in this file). The service-role key is injected
+// into the function and never returned.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {

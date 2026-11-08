@@ -2,7 +2,8 @@
 -- anonymous (demo) users, and hardening of the signup trigger.
 -- Additive only: no existing tables, columns or policies are dropped.
 
--- 1. Helper: is the current request from an anonymous (demo) user?
+-- 1. True when the JWT says is_anonymous. I read the claim, not a column
+--    on profiles, so a guest can't update their way out of the caps.
 create or replace function public.is_demo_user()
 returns boolean
 language sql
@@ -12,8 +13,12 @@ as $$
   select coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false);
 $$;
 
--- 2. Signup trigger: anonymous users have no email, and profiles.username is
---    NOT NULL + UNIQUE, so give guests a generated handle.
+-- 2. Profiles are not inserted from the client. This runs after a row lands
+--    in auth.users, for an email sign-up or an anonymous guest. Guests have
+--    no email, and username is NOT NULL and UNIQUE, so I mint
+--    guest_<8 hex chars> from the id. security definer lets the insert
+--    through before that user has a session, and an empty search_path keeps
+--    the function from resolving a shadowed profiles table.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -30,7 +35,13 @@ begin
 end;
 $$;
 
--- 3. Limits for demo users, enforced server-side by BEFORE INSERT/UPDATE triggers.
+-- 3. Caps live in the database, not the client. A normal account returns
+--    new immediately, so this trigger costs them nothing. security definer
+--    lets the count queries see the guest's rows under RLS, and EXECUTE is
+--    revoked below so nobody can call it as an RPC. Post slots are counted
+--    on insert only (an edit doesn't take another). Comment slots are
+--    counted on insert and on update, so a guest already at 20 can't edit
+--    one either. Length checks run on both.
 create or replace function public.enforce_demo_limits()
 returns trigger
 language plpgsql
@@ -123,8 +134,9 @@ drop trigger if exists profiles_demo_limits on public.profiles;
 create trigger profiles_demo_limits before update on public.profiles
   for each row execute function public.enforce_demo_limits();
 
--- 4. Demo users cannot upload to storage (restrictive policy, ANDed with the
---    existing "Authenticated users can upload cover images" policy).
+-- 4. Guests can't upload yet. Restrictive policies are ANDed with the
+--    permissive upload policy, so this blocks every storage insert from an
+--    anonymous session. A later migration replaces it with a 5-image cap.
 drop policy if exists "Demo users cannot upload files" on storage.objects;
 create policy "Demo users cannot upload files"
   on storage.objects

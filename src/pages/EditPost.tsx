@@ -10,6 +10,10 @@ import toast from 'react-hot-toast'
 import CoverImageUpload from '../components/CoverImageUpload'
 import { generateUniqueSlug } from '../utils/slugify'
 
+// Load by the slug in the URL, then leave if this user doesn't own the row.
+// That redirect is the UI. The update policy (auth.uid() = user_id) is what
+// blocks a save, and a draft I don't own never comes back from the select
+// (published OR author).
 const EditPost = () => {
   useDocumentTitle('Edit post')
   const { slug: currentSlug } = useParams();
@@ -37,7 +41,6 @@ const EditPost = () => {
         return;
       }
 
-      // Redirect if not the owner
       if (data.user_id !== user?.id) {
         navigate("/");
         return;
@@ -66,6 +69,8 @@ const EditPost = () => {
       .map((t) => t.trim())
       .filter(Boolean);
 
+    // Pass this post's id so a title that already slugifies to itself
+    // isn't treated as a collision.
     const newSlug = await generateUniqueSlug(title, supabase, postId)
 
     const { error } = await supabase
@@ -79,6 +84,7 @@ const EditPost = () => {
         slug: newSlug,
         updated_at: new Date().toISOString(),
       })
+      // The slug we loaded, not the new one. RLS still applies on top.
       .eq('slug', currentSlug);
 
     if (error) {

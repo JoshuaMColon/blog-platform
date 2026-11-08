@@ -15,7 +15,7 @@ import { AnimatePresence } from 'framer-motion'
 import { useLocation } from 'react-router-dom'
 import RouteFallback from './components/RouteFallback'
 
-// Heavier, less-visited routes (TipTap editor, profile) load on demand.
+// The editor and profile stay off the first load. TipTap is the heavy part.
 const CreatePost = lazy(() => import('./pages/CreatePost'))
 const EditPost = lazy(() => import('./pages/EditPost'))
 const MyPosts = lazy(() => import('./pages/MyPosts'))
@@ -46,11 +46,15 @@ function App() {
         <AnimatePresence mode="wait">
           <Suspense fallback={<RouteFallback />} key={location.pathname}>
           <Routes location={location} key={location.pathname}>
+            {/* The feed checks the session itself. A single post, search
+                and profiles stay public. */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            {/* Portfolio links use /demo. Same screen, guest session started for them. */}
             <Route path="/demo" element={<Navigate to="/login?demo=1" replace />} />
             <Route path="/post/:slug" element={<PostPage />} />
             <Route path="/search" element={<Search />} />
+            {/* These pages don't check the session themselves. */}
             <Route path="/following" element={
               <ProtectedRoute><Following /></ProtectedRoute>
             } />

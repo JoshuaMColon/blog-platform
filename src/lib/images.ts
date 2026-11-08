@@ -1,7 +1,8 @@
 import { supabase } from './supabase'
 
-/** Storage buckets for post images. Both are public-read; writes are limited
- *  by RLS to the uploader's own `<uid>/` folder (see the image_uploads migration). */
+/** covers: cards and the post header. post-images: inside the editor.
+ *  Both buckets are public-read. The storage policies only allow a write
+ *  whose first folder is the caller's uid. */
 export type ImageBucket = 'covers' | 'post-images'
 
 export const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const
@@ -15,7 +16,8 @@ const MAX_EDGE: Record<ImageBucket, number> = { covers: 1600, 'post-images': 140
 
 const STORAGE_PUBLIC_PREFIX = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`
 
-/** True for images served from this project's public Storage buckets. */
+/** True for a public object in this project's covers or post-images bucket.
+ *  The sanitizer drops every other <img>. */
 export const isOwnStorageUrl = (src: string) =>
   src.startsWith(STORAGE_PUBLIC_PREFIX + 'covers/') || src.startsWith(STORAGE_PUBLIC_PREFIX + 'post-images/')
 
@@ -32,9 +34,10 @@ const toBlob = (canvas: HTMLCanvasElement, type: string, quality: number) =>
   new Promise<Blob | null>(resolve => canvas.toBlob(resolve, type, quality))
 
 /**
- * Downscale to `maxEdge` on the longest side and re-encode as WebP (JPEG where
- * the browser cannot encode WebP), lowering quality until it fits the bucket
- * limit. Animated GIFs are flattened to their first frame.
+ * Downscale the longest side to maxEdge and re-encode as WebP (JPEG where
+ * this browser can't encode WebP), lowering quality until the blob fits the
+ * 2 MB bucket limit. I do this in the browser so a 10 MB original never
+ * goes up. Animated GIFs flatten to their first frame.
  */
 export async function compressImage(file: File, maxEdge = 1600): Promise<Blob> {
   validateImage(file)
@@ -59,6 +62,9 @@ export async function compressImage(file: File, maxEdge = 1600): Promise<Blob> {
 }
 
 const friendlyError = (message: string, isDemo: boolean) => {
+  // Storage reports one generic policy error for a bad folder and for the
+  // guest cap. This client always uploads into the caller's own folder, so
+  // when a guest hits it I show the 5-image limit.
   if (/row-level security|policy/i.test(message)) {
     return isDemo
       ? `Demo limit: guests can upload up to ${GUEST_IMAGE_CAP} images.`
@@ -73,6 +79,9 @@ const friendlyError = (message: string, isDemo: boolean) => {
 export async function uploadImage(file: File, bucket: ImageBucket, userId: string, isDemo = false) {
   const blob = await compressImage(file, MAX_EDGE[bucket])
   const ext = blob.type === 'image/webp' ? 'webp' : 'jpg'
+  // First folder has to be the uid or the storage policy rejects the insert.
+  // The uuid never changes, so a year of cache is safe. upsert stays off:
+  // this is a new object, not a replace.
   const path = `${userId}/${crypto.randomUUID()}.${ext}`
   const { error } = await supabase.storage
     .from(bucket)

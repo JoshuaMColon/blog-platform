@@ -70,7 +70,9 @@ const Search = () => {
     fetchTags()
   }, [])
 
-  // Ranked full-text search (title > tags > content) via the search_posts RPC.
+  // search_posts is security invoker: RLS still applies, and the function
+  // itself only returns published posts. Title outweighs tags outweighs
+  // body. requestId drops a slow response if the query changed in flight.
   const runSearch = useCallback(async (searchQuery: string, offset = 0) => {
     const id = ++requestId.current
     if (offset === 0) setLoading(true)

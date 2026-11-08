@@ -31,7 +31,8 @@ const Following = () => {
     const fetchFollowingPosts = async () => {
       if (!user) return
 
-      // Get list of people the user follows
+      // Two reads: who I follow, then their published posts. Stop on an
+      // empty list so I don't send `.in('user_id', [])`.
       const { data: follows } = await supabase
         .from('follows')
         .select('following_id')
@@ -44,7 +45,6 @@ const Following = () => {
 
       const followingIds = follows.map(f => f.following_id)
 
-      // Get posts from followed users
       const { data, error } = await supabase
         .from('posts')
         .select(`${POST_CARD_COLUMNS}, profiles(username)`)

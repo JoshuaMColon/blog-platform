@@ -13,6 +13,11 @@ interface Comment {
   profiles: { username: string }
 }
 
+// One post's thread. Edit and delete render only when comment.user_id is
+// the signed-in user; the comments policies enforce that, and
+// lock_comment_identity() pins post_id, user_id and created_at so an edit
+// can't move the row onto another post. The 500-character cap on the
+// textarea matches the demo trigger. The trigger is what rejects a longer write.
 const Comments = ({ postId }: { postId: string }) => {
   const { user, isDemo } = useAuth()
   const [comments, setComments] = useState<Comment[]>([])
@@ -38,7 +43,8 @@ const Comments = ({ postId }: { postId: string }) => {
     }
     let cancelled = false
     fetchComments()
-    // Live: new, edited and deleted comments from anyone show up without a reload.
+    // The broadcast is "comments changed" and carries no row. I re-read
+    // through RLS so I never paint something this session couldn't select.
     const stop = onLive(postTopic(postId), 'comments', () => { fetchComments() })
     return () => {
       cancelled = true
@@ -75,6 +81,8 @@ const Comments = ({ postId }: { postId: string }) => {
       refreshComments()
       toast.success('Comment posted!')
   } else {
+      // Demo caps raise as 'Demo limit: ...' from the trigger. Show that
+      // text; anything else is a generic failure.
       toast.error(error.message.startsWith('Demo limit') ? error.message : 'Failed to post comment')
   }
     setSubmitting(false)

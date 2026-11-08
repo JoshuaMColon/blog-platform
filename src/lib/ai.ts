@@ -19,7 +19,8 @@ export interface RelatedPost {
   similarity: number | null
 }
 
-/** TL;DR written by the summarize-post Edge Function (null until it has run). */
+/** TL;DR from post_summaries. Select is open for posts this session can
+ *  already see; the worker is the only writer. Null until that job finishes. */
 export const fetchSummary = async (postId: string): Promise<PostSummary | null> => {
   const { data } = await supabase
     .from('post_summaries')
@@ -30,8 +31,9 @@ export const fetchSummary = async (postId: string): Promise<PostSummary | null> 
 }
 
 /**
- * Nearest published posts by gte-small embedding. Falls back to posts that
- * share a tag while the embedding is still being computed.
+ * related_posts runs as the caller, so RLS still applies and it only
+ * returns published posts. Until the embedding exists I fall back to posts
+ * that share a tag, and leave similarity null so the card can tell.
  */
 export const fetchRelated = async (postId: string, tags: string[], count = 3): Promise<RelatedPost[]> => {
   const { data } = await supabase.rpc('related_posts', { p_post_id: postId, match_count: count })

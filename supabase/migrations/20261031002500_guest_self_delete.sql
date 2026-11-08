@@ -1,10 +1,11 @@
--- Lets a guest (anonymous) session end itself: deletes the caller's own
--- anonymous auth user, and with it their posts, comments, likes and profile via
--- the existing ON DELETE CASCADE keys. Regular accounts are never touched
--- (is_anonymous must be true and the id must be the caller's).
--- Images are removed by the caller first through the Storage API; anything
--- left behind is orphaned and picked up by the hourly cleanup-demo-files sweep.
--- Used by the Playwright guest tests so CI runs leave nothing behind.
+-- A guest session can end itself. I delete the caller's auth.users row only
+-- when it is anonymous, and the posts, comments, likes and profile go with
+-- it through ON DELETE CASCADE. Both predicates matter: id = auth.uid()
+-- stops this from deleting anyone else, and is_anonymous = true stops a
+-- normal account from deleting itself by calling the same RPC. Images are
+-- removed by the caller through the Storage API first; anything left is
+-- orphaned and picked up by the hourly cleanup-demo-files sweep. The
+-- Playwright guest tests use this so a CI run leaves nothing behind.
 create or replace function public.end_guest_session()
 returns boolean
 language plpgsql

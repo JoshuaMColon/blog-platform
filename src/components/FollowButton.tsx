@@ -9,6 +9,8 @@ interface FollowButtonProps {
   profileId: string
 }
 
+// follows.follower_id is me, following_id is them. The insert policy checks
+// the follower side only, so I always write my own id there.
 const FollowButton = ({ profileId }: FollowButtonProps) => {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -72,7 +74,9 @@ const FollowButton = ({ profileId }: FollowButtonProps) => {
     setLoading(false)
   }
 
-  // Don't show follow button on own profile
+  // I don't offer a self-follow. The follow policy would allow it (it only
+  // checks follower_id); the notify trigger skips that case so it wouldn't
+  // page me, but the row would still show up in the following feed.
   if (user?.id === profileId) return null
 
   return (

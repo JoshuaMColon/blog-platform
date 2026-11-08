@@ -1,7 +1,8 @@
--- Live updates over Supabase Realtime.
--- Database triggers broadcast small "something changed" events on public
--- channels; clients re-read through the normal RLS-protected API, so no row
--- data that a reader could not already see is ever pushed.
+-- Live updates. Triggers broadcast a small "something changed" payload on
+-- a public channel. I don't put the row in it. The client re-reads through
+-- RLS, so the event itself can't leak a body the listener couldn't select.
+-- The feed event fires only when a post is inserted already published, or
+-- flips from draft to published.
 --   post:<post_id>  event 'likes'    -> { post_id, count }
 --   post:<post_id>  event 'comments' -> { post_id, op }
 --   feed            event 'new_post' -> { id }   (only once a post is published)

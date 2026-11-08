@@ -36,6 +36,8 @@ const Bookmarks = () => {
     const fetchBookmarks = async () => {
       if (!user) return
 
+      // Nested select. I filter on my id, and the bookmarks policy only
+      // returns rows where user_id = auth.uid() anyway.
       const { data, error } = await supabase
         .from('bookmarks')
         .select(`id, created_at, posts(${POST_CARD_COLUMNS}, profiles(username))`)

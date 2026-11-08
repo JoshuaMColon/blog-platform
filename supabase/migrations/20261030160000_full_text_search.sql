@@ -1,5 +1,10 @@
--- Full-text search over posts: weighted tsvector (title A, tags B, content C) + GIN index,
--- and a ranked, highlighted search RPC that runs with the caller's rights (RLS applies).
+-- Full-text search. search_tsv is a stored generated column (title weight A,
+-- tags B, content C) with a GIN index, so it can't drift and needs no
+-- trigger. search_posts is security invoker: RLS still applies, and the
+-- function also requires published. Plain input matches each word as a
+-- prefix ("row lev" finds "row level"). Quotes, -word or "or" go through
+-- websearch_to_tsquery. Highlights are wrapped in private-use characters,
+-- not HTML, and the client turns those into <mark>.
 
 -- HTML -> plain text (tags stripped, common entities decoded). Immutable so it can feed a generated column.
 create or replace function private.post_plaintext(html text)

@@ -28,6 +28,11 @@ interface Post {
 
 const POSTS_PER_PAGE = 5
 
+// Signed-in feed (the redirect is at the bottom of this component). I page
+// with range() and ask for an exact count. POST_CARD_COLUMNS is the card
+// shape: excerpt and reading_minutes are generated in Postgres, so this
+// query never downloads post HTML. published = true also keeps my own
+// drafts off the feed, even though RLS would let me read them.
 const Home = () => {
   useDocumentTitle('Feed')
   const { user, loading: authLoading } = useAuth()
@@ -36,7 +41,7 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
-  // Ids of posts published by others since this feed was loaded.
+  // Ids broadcast on the feed channel since this page was loaded.
   const [freshIds, setFreshIds] = useState<string[]>([])
 
   const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE)
@@ -65,7 +70,9 @@ const Home = () => {
     if (user) fetchPosts()
   }, [user, currentPage, reloadKey])
 
-  // Live: the posts trigger broadcasts on 'feed' when a post is published.
+  // The posts trigger sends { id } when something is published. I count ids
+  // that aren't already on this page, and reload from page 1 on click
+  // instead of splicing rows into a paged list.
   useEffect(() => {
     if (!user) return
     return onLive(FEED_TOPIC, 'new_post', payload => {

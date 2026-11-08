@@ -1,12 +1,12 @@
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
-// One shared, ref-counted Realtime channel per topic. supabase.channel() hands
-// back the same object for a topic that is already open, so several components
-// (the like button, comments and the "reading now" counter on a post page)
-// must share it instead of each subscribing and removing it independently.
-// Broadcast listeners are fanned out locally; the socket channel is removed
-// when the last component lets go of it.
+// One shared, ref-counted Realtime channel per topic. supabase.channel()
+// hands back the same object if that topic is already open, so the like
+// button, the comment list and the "reading now" counter on a post page
+// have to share it. If each one subscribed and then called removeChannel,
+// the first unmount would kill the socket for the others. Listeners fan
+// out locally; I drop the channel once the last component lets go.
 
 type Payload = Record<string, unknown>
 type Handler = (payload: Payload) => void

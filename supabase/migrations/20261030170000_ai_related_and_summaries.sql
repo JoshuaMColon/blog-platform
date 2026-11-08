@@ -1,7 +1,9 @@
--- AI features: pgvector embeddings for "Related posts" and TL;DR summaries.
--- Work is queued by a trigger on publish/update and done by two Edge Functions
--- (embed-post, summarize-post) that are only callable with the Vault internal token.
--- Clients can read results for posts they can see; nobody but service_role can write.
+-- Related posts and TL;DR. A trigger queues the work on publish or edit;
+-- two Edge Functions do it, and they only accept the Vault internal token.
+-- A summary or an embedding is readable when the underlying post is one
+-- this session can already see (published, or their own draft). I grant
+-- SELECT and nothing else, so the browser can't write either table. The
+-- workers use service_role.
 
 create extension if not exists vector with schema extensions;
 

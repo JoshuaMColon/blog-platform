@@ -33,6 +33,9 @@ interface Post {
   profiles: { username: string }
 }
 
+// Public page, keyed by slug. No row means a bad slug or a draft I don't
+// own. Edit and delete show only for the author; the delete policy is the
+// check that matters.
 const PostPage = () => {
   const { slug } = useParams()
   const { user } = useAuth()
@@ -86,6 +89,7 @@ const PostPage = () => {
     </div>
   )
 
+  // Same ownership test as the update/delete policies. Buttons only.
   const isOwner = user?.id === post.user_id
 
   return (
@@ -208,6 +212,8 @@ const PostPage = () => {
           <div
             className="post-body"
             style={{ color: 'var(--text-primary)' }}
+            // Stored as editor HTML. sanitizeHtml strips scripts and any
+            // image that isn't from this project's Storage buckets.
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
           />
 
